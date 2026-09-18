@@ -23,7 +23,13 @@
   --rayon: 14px;
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* `manipulation` supprime le zoom au DOUBLE-APPUI sans supprimer le zoom à
+   deux doigts — qui doit rester, sinon l'app devient inutilisable pour qui voit
+   mal. Demandé par Samer le 18/09/2026 : dans une app où l'on tape vite sur des
+   cases voisines, le double-appui est presque toujours involontaire.
+   Les vieilles directives (`user-scalable=no`, `maximum-scale=1`) ne servent
+   plus à rien : Safari les ignore depuis iOS 10. */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 html, body {
   margin: 0;
@@ -104,10 +110,17 @@ body { min-height: 100dvh; }
 .chose.faite input[type=text] { color: var(--texte-doux); text-decoration: line-through; }
 
 /* --- lignes d'habitude --------------------------------------------------- */
+/* Deux rangées : le nom et sa commande en haut, la semaine en dessous sur
+   toute la largeur. En une seule rangée, la semaine passait sous les boutons
+   des prières — vu à l'écran le 18/09/2026. */
 .ligne {
-  display: flex; align-items: center; gap: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 12px;
   padding: 11px 0; border-top: 1px solid var(--trait);
 }
+.ligne > .semaine { grid-column: 1 / -1; }
 .ligne:first-of-type { border-top: 0; }
 .ligne .nom { flex: 1; min-width: 0; }
 .ligne .libelle { font-size: 16px; }
@@ -222,3 +235,101 @@ label.champ > span { display: block; font-size: 13px; color: var(--texte-doux); 
 
 .note-bas { font-size: 13px; color: var(--texte-faible); margin-top: 10px; }
 .vide { color: var(--texte-faible); font-size: 15px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ce qui fait qu'on revient — 18/09/2026
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --- le rang, en haut à droite ------------------------------------------- */
+.haut-ligne { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rang {
+  flex: none; background: var(--encre-haute); border: 1px solid var(--or-sombre);
+  color: var(--or); border-radius: 99px; padding: 6px 13px; font-size: 13px;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+}
+.rang b { font-size: 15px; }
+
+/* --- l'anneau du jour ----------------------------------------------------- */
+/* Le retour immédiat. Sans lui, cocher une case ne produit rien de visible —
+   et rien de visible veut dire rien de ressenti. */
+.anneau-carte { background: var(--encre-haute); }
+.anneau-ligne { display: flex; align-items: center; gap: 18px; }
+.anneau { width: 96px; height: 96px; flex: none; }
+/* La transition est ce qui fait qu'on VOIT la barre avancer, au lieu de la
+   trouver déjà avancée. C'est tout l'effet. */
+.anneau-trace { transition: stroke-dashoffset .45s cubic-bezier(.22,1,.36,1), stroke .3s; }
+.anneau-texte { min-width: 0; }
+.anneau-chiffre { font-size: 34px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.anneau-chiffre span { font-size: 19px; color: var(--texte-faible); font-weight: 400; }
+.anneau-quoi { font-size: 14px; color: var(--texte-doux); margin-top: 5px; }
+.anneau-chaine { font-size: 13px; color: var(--or); margin-top: 7px; }
+
+/* --- la barre de niveau --------------------------------------------------- */
+.niveau { margin-top: 16px; }
+.niveau-haut { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; color: var(--texte-doux); margin-bottom: 6px; }
+.niveau-haut b { color: var(--texte-faible); font-weight: 400; white-space: nowrap; }
+.grand-rang { font-size: 40px; font-weight: 600; line-height: 1.05; color: var(--or); margin-bottom: 12px; }
+.grand-rang span { font-size: 17px; color: var(--texte-doux); font-weight: 400; }
+
+/* --- la semaine en sept cases --------------------------------------------- */
+/* Un trou se voit sans lire un chiffre. C'est la forme la plus dense qui reste
+   lisible au pouce. */
+.semaine { display: flex; align-items: center; gap: 4px; margin-top: 7px; }
+.semaine i { width: 13px; height: 13px; border-radius: 4px; display: block; flex: none; }
+.j-tenu { background: var(--tenu); }
+.j-partiel { background: var(--or-sombre); }
+.j-rate { background: transparent; box-shadow: inset 0 0 0 1.5px var(--danger); opacity: .55; }
+.j-vide { background: var(--trait); }
+.j-gele { background: var(--tete); }
+.semaine .chaine { margin-left: 7px; }
+
+/* --- l'offre de gel ------------------------------------------------------- */
+/* Elle passe DEVANT l'alerte : s'il existe une porte de sortie, on la montre
+   avant de parler d'échec. Chez Duolingo, ce mécanisme a réduit l'abandon de
+   21 % chez ceux qui allaient casser leur chaîne. */
+.gel {
+  background: rgba(122, 167, 199, .12);
+  border: 1px solid rgba(122, 167, 199, .45);
+  border-radius: var(--rayon); padding: 14px 15px; margin-bottom: 18px;
+}
+.gel .titre { color: var(--tete); font-weight: 600; font-size: 15px; margin-bottom: 5px; }
+.gel .quoi { font-size: 15px; color: var(--texte); }
+
+.gels-rangee { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.gels-rangee i {
+  width: 22px; height: 22px; border-radius: 6px; display: block;
+  border: 1.5px solid var(--trait); background: transparent;
+}
+.gels-rangee i.plein { background: var(--tete); border-color: var(--tete); }
+.gels-rangee span { font-size: 14px; color: var(--texte-doux); margin-left: 4px; }
+
+/* --- le bilan du soir ----------------------------------------------------- */
+.voile {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(8, 7, 5, .72); backdrop-filter: blur(6px);
+  display: grid; place-items: center; padding: 20px;
+  animation: paraitre .2s ease-out;
+}
+@keyframes paraitre { from { opacity: 0 } to { opacity: 1 } }
+.bilan {
+  background: var(--encre-carte); border: 1px solid var(--or-sombre);
+  border-radius: 18px; padding: 22px; width: 100%; max-width: 400px;
+  max-height: 86dvh; overflow-y: auto;
+  animation: monter .32s cubic-bezier(.22,1,.36,1);
+}
+@keyframes monter { from { transform: translateY(16px); opacity: 0 } to { transform: none; opacity: 1 } }
+.bilan-titre { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--texte-faible); }
+.bilan-score { font-size: 46px; font-weight: 600; line-height: 1.1; margin: 4px 0 14px; font-variant-numeric: tabular-nums; }
+.bilan-score span { font-size: 20px; color: var(--texte-faible); font-weight: 400; }
+.palier {
+  background: rgba(216, 169, 74, .13); border: 1px solid var(--or-sombre);
+  border-radius: 11px; padding: 11px 13px; margin-bottom: 9px; font-size: 14px; color: var(--texte);
+}
+.bilan-lignes { display: grid; gap: 11px; margin-top: 14px; }
+.bilan-lignes > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; }
+.bilan-lignes span { color: var(--texte-doux); min-width: 0; }
+.bilan-lignes b { white-space: nowrap; color: var(--or); font-weight: 600; }
+
+/* --- les rappels ---------------------------------------------------------- */
+.rappel-etat { font-size: 15px; color: var(--texte-doux); }
+.rappel-etat.ok { color: var(--tenu); }

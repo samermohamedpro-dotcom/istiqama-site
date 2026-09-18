@@ -19,6 +19,10 @@ export function classeurVide() {
     jours: {},
     reglages: structuredClone(REGLAGES_DEPART),
     argent: structuredClone(ARGENT_DEPART),
+    // Les jours rachetés par un gel de chaîne. Une liste de clés de jour, et
+    // rien de plus : ce qui est gelé se lit à l'œil nu dans une sauvegarde.
+    gels: { utilises: [] },
+    gelRefuse: null,
     derniereSauvegarde: null,
   };
 }
@@ -42,6 +46,7 @@ export function completer(brut) {
   if (!Array.isArray(classeur.reglages.projets)) classeur.reglages.projets = vide.reglages.projets;
   if (!Array.isArray(classeur.argent.placements)) classeur.argent.placements = [];
   if (!classeur.argent.mois || typeof classeur.argent.mois !== 'object') classeur.argent.mois = {};
+  if (!classeur.gels || !Array.isArray(classeur.gels.utilises)) classeur.gels = { utilises: [] };
   return classeur;
 }
 

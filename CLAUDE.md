@@ -42,10 +42,18 @@ par erreur :
 
 | Le mécanisme | Où il vit | Ce qui le casserait |
 |---|---|---|
-| **la chaîne** | `chaineEnCours` | la faire repartir de zéro chaque matin |
+| **la chaîne** | `chaineAvecGels` | la faire repartir de zéro chaque matin |
+| **le gel de chaîne** | `gelsEnStock`, `chaineSauveeParUnGel` | le rendre achetable, ou déplafonner le stock |
 | **jamais deux fois de suite** | `enDanger` | l'afficher tous les jours : elle deviendrait un décor |
+| **les paliers** | `prochainPalier` | retirer le 7ᵉ jour, qui est la bascule mesurée |
+| **le niveau** | `progressionNiveau` | le faire baisser : il est là pour ne JAMAIS se perdre |
+| **les votes d'identité** | `votes` | les présenter comme une performance et non comme qui il est |
 | **la courbe du cumul** | `courbeCumul` | montrer un score du jour à la place |
 | **la chose du jour** | écran *Aujourd'hui* | en autoriser plusieurs |
+| **l'anneau du jour** | `anneauSVG` + `.anneau-trace` | retirer la transition CSS : on ne VERRAIT plus la barre avancer |
+
+Le pourquoi de chacun, avec les mesures et les sources, est dans `README.md`,
+§ « Ce qui fait qu'on revient ». **On ne le redit pas ici.**
 
 ---
 

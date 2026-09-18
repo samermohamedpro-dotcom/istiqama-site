@@ -11,6 +11,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  chaineSauveeParUnGel, gelsEnStock, joursAvantProchainGel, joursCorrects, chaineAvecGels, plusLongueChaine,
+  prochainPalier, palierAtteint, progressionNiveau, niveau, rang, pointsTotaux,
+  votes, grilleSemaine, bilanDuJour, PALIERS, GELS_MAX,
   cleDuJour, cleDecalee, clesRecentes, moisEntre, cleDuMois, cleDuMoisDecale,
   pointsHabitude, tenue, pointsDuJour, jourRenseigne,
   chaineEnCours, meilleureChaine, enDanger,
@@ -346,4 +349,227 @@ test("viewport-fit=cover et les marges vont TOUJOURS ensemble", async () => {
   const page = await readFile(new URL('./construire.mjs', import.meta.url), 'utf8');
   assert.match(page, /viewport-fit=cover/,
     'viewport-fit=cover a disparu de la page : les env(safe-area-*) ne servent plus à rien');
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Ce qui fait qu'on revient
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Une suite de journées tenues, du plus ancien au plus récent.
+function joursTenus(finCle, nb, tenu = { bouger: true, eau: 8, fajr: 'heure' }) {
+  const jours = {};
+  for (const cle of clesRecentes(finCle, nb)) jours[cle] = { tenu: { ...tenu } };
+  return jours;
+}
+
+test('un gel se GAGNE tous les sept jours corrects, et le stock est plafonné', () => {
+  assert.equal(gelsEnStock(joursTenus('2026-09-18', 6), R), 0);
+  assert.equal(gelsEnStock(joursTenus('2026-09-18', 7), R), 1);
+  assert.equal(gelsEnStock(joursTenus('2026-09-18', 20), R), 2);
+  // le plafond : sans lui, un gros stock ne protège plus rien
+  assert.equal(gelsEnStock(joursTenus('2026-09-18', 200), R), GELS_MAX);
+});
+
+test('un gel dépensé sort du stock', () => {
+  const j = joursTenus('2026-09-18', 21);
+  assert.equal(gelsEnStock(j, R), 3);
+  assert.equal(gelsEnStock(j, R, ['2026-08-01']), 2);
+  assert.equal(gelsEnStock(j, R, ['2026-08-01', '2026-08-02', '2026-08-03']), 0);
+});
+
+test("une journée à moitié tenue ne compte pas comme correcte", () => {
+  // Le seuil est à 60 % : sinon on gagnerait des gels en ne faisant presque rien,
+  // et la protection perdrait tout son sens.
+  const jours = {
+    '2026-09-17': { tenu: { bouger: true, eau: 8, fajr: 'heure' } },   // 3/3
+    '2026-09-18': { tenu: { bouger: true } },                            // 1/3
+  };
+  assert.equal(joursCorrects(jours, R), 1);
+});
+
+test('un gel sauve la chaîne le jour où elle allait casser', () => {
+  // C'est le mécanisme entier : sans gel la chaîne tombe à 1, avec elle continue.
+  const jours = joursTenus('2026-09-16', 12);
+  jours['2026-09-17'] = { tenu: { bouger: false }, chose: 'journée ratée' };
+  jours['2026-09-18'] = { tenu: { bouger: true } };
+  assert.equal(chaineAvecGels(jours, BOUGER, '2026-09-18', []), 1);
+  assert.equal(chaineAvecGels(jours, BOUGER, '2026-09-18', ['2026-09-17']), 14);
+});
+
+test('un jour gelé protège TOUTES les habitudes, pas une seule', () => {
+  const jours = joursTenus('2026-09-16', 5);
+  jours['2026-09-17'] = { tenu: {}, chose: 'rien fait' };
+  jours['2026-09-18'] = { tenu: { bouger: true, fajr: 'heure', eau: 8 } };
+  for (const h of R.habitudes) {
+    assert.equal(chaineAvecGels(jours, h, '2026-09-18', ['2026-09-17']), 7, h.id);
+  }
+});
+
+test('la plus longue chaîne est celle qu’on montre en grand', () => {
+  const jours = joursTenus('2026-09-18', 10, { fajr: 'heure' });
+  jours['2026-09-18'].tenu.bouger = true;
+  const longue = plusLongueChaine(jours, R, '2026-09-18');
+  assert.equal(longue.habitude.id, 'fajr');
+  assert.equal(longue.jours, 10);
+});
+
+test('le prochain palier est toujours nommé, et le dernier ne ment pas', () => {
+  assert.deepEqual(prochainPalier(0), { palier: 7, reste: 7 });
+  assert.deepEqual(prochainPalier(5), { palier: 7, reste: 2 });
+  assert.deepEqual(prochainPalier(7), { palier: 14, reste: 7 });
+  assert.equal(prochainPalier(365), null);       // plus rien à promettre : on ne promet rien
+  assert.equal(palierAtteint(7), true);
+  assert.equal(palierAtteint(8), false);
+  assert.equal(PALIERS[0], 7);                   // le 7ᵉ jour est la bascule mesurée
+});
+
+test('le niveau monte vite au début, puis s’espace', () => {
+  assert.equal(niveau(0), 1);
+  assert.equal(niveau(10), 2);     // ~1 journée
+  assert.equal(niveau(40), 3);
+  assert.equal(niveau(1000), 11);  // ~3 mois
+  assert.equal(rang(1), 'Premier pas');
+  assert.equal(rang(7), 'Constant');
+  assert.equal(rang(22), 'Istiqama');
+  assert.equal(rang(100), 'Istiqama');
+});
+
+test('la progression de niveau donne tout ce qu’il faut pour la barre', () => {
+  const jours = joursTenus('2026-09-18', 10);   // 3 pts/j = 30
+  const p = progressionNiveau(jours, R);
+  assert.equal(p.total, 30);
+  assert.equal(p.niveau, 2);
+  assert.equal(p.dansLeNiveau, 20);   // niveau 2 commence à 10
+  assert.equal(p.pourLeNiveau, 30);   // niveau 3 commence à 40
+  assert.equal(p.manque, 10);
+  assert.ok(p.part > 0.66 && p.part < 0.67);
+});
+
+test('le niveau ne se perd JAMAIS, même après une semaine ratée', () => {
+  // C'est sa raison d'être : la chaîne punit, le niveau garde. Sans lui, une
+  // mauvaise semaine efface tout et on ferme l'app.
+  const jours = joursTenus('2026-09-11', 20);
+  const avant = progressionNiveau(jours, R);
+  for (const cle of clesRecentes('2026-09-18', 7)) jours[cle] = { tenu: {}, chose: 'rien' };
+  const apres = progressionNiveau(jours, R);
+  assert.equal(apres.total, avant.total);
+  assert.equal(apres.niveau, avant.niveau);
+});
+
+test('les votes se comptent, un par habitude tenue', () => {
+  const jours = {
+    '2026-09-17': { tenu: { bouger: true, eau: 8, fajr: 'heure' } },
+    '2026-09-18': { tenu: { bouger: true, eau: 0, fajr: 'non' } },
+  };
+  assert.equal(votes(jours, R, '2026-09-18', 2), 4);
+  // une prière rattrapée reste un vote : elle a été faite
+  jours['2026-09-18'].tenu.fajr = 'rattrapee';
+  assert.equal(votes(jours, R, '2026-09-18', 2), 5);
+});
+
+test('la grille de la semaine distingue quatre états, dont le gel', () => {
+  const jours = {
+    '2026-09-16': { tenu: { fajr: 'heure' } },
+    '2026-09-17': { tenu: { fajr: 'rattrapee' } },
+    '2026-09-18': { tenu: { fajr: 'non' }, chose: 'journée ouverte' },
+  };
+  const g = grilleSemaine(jours, FAJR, '2026-09-18', ['2026-09-15'], 4);
+  assert.deepEqual(g.map((c) => c.etat), ['gele', 'tenu', 'partiel', 'rate']);
+  // un jour jamais ouvert n'est pas un raté : il n'a pas eu lieu
+  assert.equal(grilleSemaine({}, FAJR, '2026-09-18', [], 1)[0].etat, 'vide');
+});
+
+test('le bilan du soir dit ce qui a bougé, et signale un palier franchi', () => {
+  const jours = joursTenus('2026-09-18', 7);
+  const b = bilanDuJour(jours, R, '2026-09-18');
+  assert.equal(b.complet, true);
+  assert.equal(b.gagnes, 3);
+  assert.equal(b.plusLongueChaine.jours, 7);
+  assert.equal(b.paliersFranchis.length, 3);          // les trois habitudes à 7 jours
+  assert.equal(b.niveau.rang, 'Premier pas');
+
+  // au 8ᵉ jour, plus aucun palier : on ne fête pas ce qui n'a pas eu lieu
+  const huit = joursTenus('2026-09-19', 8);
+  assert.equal(bilanDuJour(huit, R, '2026-09-19').paliersFranchis.length, 0);
+});
+
+test("le gel annonce la chaîne RÉELLEMENT en jeu, pas la plus longue de l'app", () => {
+  // Défaut trouvé à l'écran le 18/09/2026 : l'offre annonçait « ta chaîne de
+  // 39 jours » alors que l'habitude manquée en avait 3. Le chiffre était vrai,
+  // et il répondait à une autre question.
+  const jours = joursTenus('2026-09-16', 39, { fajr: 'heure' });
+  for (const cle of clesRecentes('2026-09-16', 3)) jours[cle].tenu.bouger = true;
+  jours['2026-09-17'] = { tenu: { fajr: 'heure' }, chose: 'journée ouverte' };  // bouger manqué
+  jours['2026-09-18'] = { tenu: {}, chose: 'aujourd’hui' };
+
+  const enJeu = chaineSauveeParUnGel(jours, R, '2026-09-18');
+  assert.equal(enJeu.habitude.id, 'bouger', "c'est Bouger qui est menacé, pas Fajr");
+  assert.equal(enJeu.jours, 3);
+
+  // et la plus longue chaîne de l'app, elle, est bien plus grande : c'est ce
+  // chiffre-là qu'on affichait à tort.
+  assert.ok(plusLongueChaine(jours, R, '2026-09-17').jours > 30);
+});
+
+test("rien à sauver quand rien n'est menacé", () => {
+  const jours = joursTenus('2026-09-18', 10);
+  assert.equal(chaineSauveeParUnGel(jours, R, '2026-09-18').jours, 0);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Le service ouvrier — ce qu'on PEUT vérifier ici, et ce qu'on ne peut pas
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Ce qu'on NE PEUT PAS : le voir s'enregistrer et servir hors connexion. Le
+// 18/09/2026, même un service ouvrier VIDE a été refusé par le navigateur
+// d'aperçu — l'enregistrement est désactivé dans cette fenêtre. Le seul vrai
+// test est celui de Samer, sur son iPhone (`A-FAIRE.md`).
+//
+// Ce qu'on PEUT : vérifier que les trois parades contre la panne la plus chère
+// de ce genre de fichier — servir une VIEILLE version pour toujours, sans une
+// erreur nulle part — sont bien déclarées dans le fichier produit.
+
+test('le service ouvrier porte ses trois parades anti-version-figée', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const sw = await readFile(new URL('./docs/service-ouvrier.js', import.meta.url), 'utf8');
+
+  // 1. un cache neuf à chaque construction, sinon l'ancien survit
+  const nom = sw.match(/const CACHE = '([^']+)'/)?.[1];
+  assert.ok(nom, 'aucun nom de cache');
+  assert.match(nom, /^istiqama-\d{10,}$/, 'le nom du cache ne porte pas la version');
+
+  // 2. la nouvelle version prend la main sans attendre la fermeture des onglets
+  assert.match(sw, /skipWaiting\(\)/);
+  assert.match(sw, /clients\.claim\(\)/);
+
+  // 3. les vieux caches sont supprimés, sinon ils s'empilent indéfiniment
+  assert.match(sw, /caches\.delete\(nom\)/);
+
+  // 4. la PAGE passe par le réseau d'abord : servie depuis le cache, elle
+  //    figerait tout le reste
+  assert.match(sw, /estLaPage[\s\S]{0,200}await fetch\(e\.request\)/);
+});
+
+test('la porte de sortie existe dans l’app, et elle ne touche pas aux données', async () => {
+  // Un composant qu'on n'a pas pu vérifier doit avoir un interrupteur.
+  const { readFile } = await import('node:fs/promises');
+  const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
+  assert.match(app, /vider-le-cache/, "pas de bouton pour vider le cache");
+  const fn = app.match(/async function viderLeCache\(\)[\s\S]*?\n\}/)?.[0];
+  assert.ok(fn, 'viderLeCache introuvable');
+  assert.match(fn, /unregister\(\)/);
+  assert.match(fn, /caches\.delete/);
+  assert.doesNotMatch(fn, /localStorage|classeur/, "vider le cache ne doit JAMAIS toucher aux données");
+});
+
+test('la notification ne peut pas rester suspendue pour toujours', async () => {
+  // `navigator.serviceWorker.ready` ne se résout jamais quand l'enregistrement
+  // a échoué : il n'échoue pas, il attend. Sans course contre une limite de
+  // temps, la fonction ne revient plus — et rien ne le signale.
+  const { readFile } = await import('node:fs/promises');
+  const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
+  const fn = app.match(/async function direCeQuiReste\(\)[\s\S]*?\n\}/)?.[0];
+  assert.ok(fn, 'direCeQuiReste introuvable');
+  assert.match(fn, /Promise\.race/, 'aucune limite de temps sur serviceWorker.ready');
+  assert.match(fn, /setTimeout/);
 });

@@ -61,6 +61,67 @@ l'app deviendrait un mensonge poli.
 
 ---
 
+## Ce qui fait qu'on revient — et d'où viennent ces choix
+
+*Ajouté le 18/09/2026, après recherche. Samer : « faut que ça joue dans mon
+cerveau comme un jeu qui stimule ». Ce qui suit ne sort pas d'une intuition :
+chaque mécanisme vient d'une mesure publiée, et la source est nommée.*
+
+**Le chiffre qui cadre tout le reste : plus de la moitié des gens abandonnent
+une app de suivi dans les trente jours.** Ce n'est donc pas « avoir des
+fonctions » qui compte, c'est franchir le premier mois.
+
+**1. Le gel de chaîne — le mécanisme le plus rentable du domaine.**
+Chez Duolingo, le *streak freeze* a **réduit l'abandon de 21 %** chez les gens
+sur le point de casser leur chaîne. Les apps qui en ont gardent leurs
+utilisateurs **17,2 jours après le 7ᵉ**, contre 11,6 sans.
+Pourquoi : il supprime l'**échec catastrophique** — le jour où une chaîne de 40
+tombe à zéro, on ferme l'app pour de bon — **sans** supprimer la pression
+quotidienne, qui est ce qui fait tenir.
+Ici : un gel se **gagne** (7 jours corrects), il ne s'achète pas, le stock est
+plafonné à trois, et il couvre la journée entière.
+
+**2. Le 7ᵉ jour est nommé, parce que c'est la bascule mesurée.**
+Les gens qui atteignent une chaîne de 7 jours restent **2,4 fois plus
+longtemps** que ceux qui n'en établissent jamais. L'app affiche donc toujours
+le **prochain palier** et ce qui en sépare — 7, 14, 21, 30, 60, 100, 180, 365.
+
+**3. La perte fait deux fois plus que le gain.**
+Kahneman et Tversky : perdre quelque chose pèse environ **deux fois** ce que
+pèse le gagner. Une chaîne de 7 jours n'est pas vécue comme « 7 jours
+d'avance », mais comme « 7 jours que je peux perdre ». C'est pourquoi la chaîne
+est affichée à côté de **chaque** habitude, et la plus longue en haut de
+l'écran.
+
+**4. L'identité bat la performance.**
+Les apps qui présentent la régularité comme **qui tu es** font mieux que celles
+qui la présentent comme **ce que tu as fait**. James Clear : *« chaque action
+est un vote pour la personne que tu veux devenir »*. L'app **compte les
+votes** — c'est un chiffre, là où une intention n'en est pas un.
+
+**5. Le niveau, pour que la punition ne soit pas la seule mécanique.**
+La chaîne casse ; le niveau, jamais. C'est ce qui reste après une mauvaise
+semaine, et c'est la traduction littérale de L'Effet cumulé : ce qui est acquis
+ne se reperd pas. Huit rangs, de *Premier pas* à *Istiqama*.
+
+**6. Le retour immédiat.**
+Une action qui ne produit rien de visible ne produit rien de ressenti. D'où
+l'anneau du jour qui se remplit sous le doigt, avec une transition qu'on VOIT
+avancer, et un retour haptique quand ça monte — jamais quand ça descend.
+
+**7. Ce qu'on a écarté exprès.**
+Pas de pet virtuel (Finch), pas de personnage qui meurt (Habitica), pas de
+classement, pas d'ami à qui se comparer. La recherche dit que la
+responsabilité sociale marche — et Samer a demandé une app **personnelle**, qui
+porte sa pratique religieuse et son argent. Ça ne se partage pas.
+
+Sources : [Duolingo streak](https://apptitude.io/blog/how-duolingos-streak-mechanic-actually-works/) ·
+[mécaniques de rétention](https://dispatch.digia.tech/p/gamification-mobile-apps-streaks-rewards-retention-mechanics) ·
+[panorama 2026](https://gamificationplus.uk/which-gamified-habit-building-app-do-i-think-is-best-in-2026/) ·
+[habitudes d'identité](https://atomichabitssummary.com/chapter-2-identity-based-habits)
+
+---
+
 ## Ce que l'app refuse de faire, et pourquoi
 
 - **Pas d'encouragements, pas de confettis, pas de badges.** Samer a demandé un
@@ -77,6 +138,11 @@ l'app deviendrait un mensonge poli.
   `A-FAIRE.md` de 89G : Samer écrit lui-même sa ligne du soir. C'est un choix,
   pris le 18/09/2026 — un chemin vers l'intérieur d'un autre projet tient tant
   que rien ne bouge, et casse au premier dossier renommé.
+- **Pas de notification qui se déclenche toute seule.** Ce n'est pas un choix,
+  c'est une limite : **une app web ne peut pas se réveiller seule sur iPhone.**
+  Le seul chemin serait un serveur qui pousse la notification — donc des données
+  qui quittent le téléphone, donc la première règle du projet cassée. Ce qui
+  marche à la place est dans `LISEZ-MOI-DABORD.md`, § « Le rappel du jour ».
 - **Pas d'horaires de prière calculés.** Il les connaît. Une app qui les
   calcule doit connaître la position, donc demander une autorisation, donc
   parler au réseau — pour remplacer ce qu'il sait déjà.

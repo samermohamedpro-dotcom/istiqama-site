@@ -315,3 +315,228 @@ export function habitudesDuMoment(reglages, matin) {
     plusTard: actives.filter((h) => h.moment && h.moment !== moment),
   };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Ce qui fait qu'on revient — ajouté le 18/09/2026
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Chaque mécanisme ci-dessous vient d'une mesure publiée, pas d'une intuition.
+// Les sources sont dans README.md, § « Ce qui fait qu'on revient ».
+
+// --- Le gel de chaîne ------------------------------------------------------
+//
+// LE mécanisme le plus rentable du domaine : chez Duolingo, il a réduit
+// l'abandon de 21 % chez les gens sur le point de casser leur chaîne, et les
+// apps qui en ont gardent leurs utilisateurs 17,2 jours après le 7ᵉ contre
+// 11,6 sans.
+//
+// Pourquoi ça marche : il supprime l'ÉCHEC CATASTROPHIQUE — le jour où la
+// chaîne de 40 tombe à zéro, on ferme l'app pour de bon — sans supprimer la
+// pression quotidienne, qui est ce qui fait tenir.
+//
+// Ici : un gel se GAGNE (7 jours corrects), il ne s'achète pas, et il couvre
+// la journée entière. Le stock est plafonné à trois, sinon il ne protège plus
+// rien.
+
+export const SEUIL_JOUR_CORRECT = 0.6;   // part des points du jour
+export const JOURS_PAR_GEL = 7;
+export const GELS_MAX = 3;
+
+export function joursCorrects(jours, reglages) {
+  const possibles = habitudesActives(reglages).length;
+  if (possibles === 0) return 0;
+  return Object.keys(jours).filter((cle) =>
+    pointsDuJour(jours[cle], reglages).gagnes / possibles >= SEUIL_JOUR_CORRECT).length;
+}
+
+export function gelsEnStock(jours, reglages, gelsUtilises = []) {
+  const gagnes = Math.floor(joursCorrects(jours, reglages) / JOURS_PAR_GEL);
+  return Math.max(0, Math.min(GELS_MAX, gagnes - gelsUtilises.length));
+}
+
+// Combien de jours reste-t-il avant d'en gagner un de plus ? Affiché, parce
+// qu'un compteur qui approche fait revenir — c'est le même ressort que la
+// chaîne, appliqué à la protection de la chaîne.
+export function joursAvantProchainGel(jours, reglages) {
+  const reste = joursCorrects(jours, reglages) % JOURS_PAR_GEL;
+  return JOURS_PAR_GEL - reste;
+}
+
+// --- Les chaînes, avec les gels -------------------------------------------
+//
+// Un jour gelé compte comme tenu pour TOUTES les habitudes. Un gel par
+// habitude serait plus juste et illisible : personne ne saurait plus ce qui
+// est protégé.
+
+function jourCompte(jours, habitude, cle, gelsUtilises) {
+  if (gelsUtilises.includes(cle)) return true;
+  return tenue(habitude, jours[cle]?.tenu?.[habitude.id]);
+}
+
+export function chaineAvecGels(jours, habitude, aujourdhui, gelsUtilises = []) {
+  let cle = aujourdhui;
+  if (!jourCompte(jours, habitude, cle, gelsUtilises)) cle = cleDecalee(aujourdhui, -1);
+  let n = 0;
+  while (jourCompte(jours, habitude, cle, gelsUtilises)) {
+    n++;
+    cle = cleDecalee(cle, -1);
+  }
+  return n;
+}
+
+// La chaîne la plus longue en cours, toutes habitudes confondues. C'est elle
+// qu'on montre en grand : c'est celle qu'on a peur de perdre.
+export function plusLongueChaine(jours, reglages, aujourdhui, gelsUtilises = []) {
+  let meilleure = { habitude: null, jours: 0 };
+  for (const h of habitudesActives(reglages)) {
+    const n = chaineAvecGels(jours, h, aujourdhui, gelsUtilises);
+    if (n > meilleure.jours) meilleure = { habitude: h, jours: n };
+  }
+  return meilleure;
+}
+
+// Ce qu'un gel sauverait VRAIMENT, s'il était dépensé sur hier.
+//
+// Le piège, trouvé le 18/09/2026 en regardant l'écran : annoncer « ta chaîne de
+// 39 jours » alors que l'habitude manquée était une autre, dont la chaîne
+// n'était que de 3. Le chiffre était vrai — c'était bien la plus longue chaîne —
+// mais il ne répondait pas à la question posée. Un chiffre juste à la mauvaise
+// question est un mensonge poli, et c'est exactement ce qu'on refuse ici.
+export function chaineSauveeParUnGel(jours, reglages, aujourdhui, gelsUtilises = []) {
+  const hier = cleDecalee(aujourdhui, -1);
+  const menacees = habitudesActives(reglages).filter((h) => enDanger(jours, h, aujourdhui));
+  let meilleure = { habitude: null, jours: 0 };
+  for (const h of menacees) {
+    // La chaîne telle qu'elle était AVANT-HIER : c'est elle que le trou casse.
+    const n = chaineAvecGels(jours, h, cleDecalee(hier, -1), gelsUtilises);
+    if (n > meilleure.jours) meilleure = { habitude: h, jours: n };
+  }
+  return meilleure;
+}
+
+// --- Les paliers ----------------------------------------------------------
+//
+// Le 7ᵉ jour est la bascule mesurée du domaine : au-delà, les gens restent
+// 2,4 fois plus longtemps. Il doit donc être NOMMÉ et visible, pas seulement
+// atteint. Les suivants espacent la récompense sans jamais la rendre lointaine.
+
+export const PALIERS = [7, 14, 21, 30, 60, 100, 180, 365];
+
+export function prochainPalier(nbJours) {
+  const suivant = PALIERS.find((p) => p > nbJours);
+  if (suivant === undefined) return null;
+  return { palier: suivant, reste: suivant - nbJours };
+}
+
+export function palierAtteint(nbJours) {
+  return PALIERS.includes(nbJours);
+}
+
+// --- Le niveau ------------------------------------------------------------
+//
+// La chaîne se casse ; le niveau, jamais. C'est ce qui reste quand une
+// mauvaise semaine efface tout le reste — et c'est la traduction littérale de
+// L'Effet cumulé : ce qui est acquis ne se reperd pas.
+//
+// La courbe est en racine carrée : les premiers niveaux tombent vite (il faut
+// que quelque chose arrive dans les trois premiers jours), les suivants
+// s'espacent sans jamais devenir hors d'atteinte.
+
+export const RANGS = [
+  { niveau: 1, nom: 'Premier pas' },
+  { niveau: 3, nom: 'Élan' },
+  { niveau: 5, nom: 'Régulier' },
+  { niveau: 7, nom: 'Constant' },
+  { niveau: 10, nom: 'Ancré' },
+  { niveau: 13, nom: 'Solide' },
+  { niveau: 17, nom: 'Inébranlable' },
+  { niveau: 22, nom: 'Istiqama' },
+];
+
+export function pointsTotaux(jours, reglages) {
+  return Object.keys(jours).reduce((s, cle) => s + pointsDuJour(jours[cle], reglages).gagnes, 0);
+}
+
+export function pointsPourNiveau(niveau) {
+  return 10 * (niveau - 1) ** 2;
+}
+
+export function niveau(total) {
+  return Math.floor(Math.sqrt(Math.max(0, total) / 10)) + 1;
+}
+
+export function rang(niveauCourant) {
+  let nom = RANGS[0].nom;
+  for (const r of RANGS) if (niveauCourant >= r.niveau) nom = r.nom;
+  return nom;
+}
+
+// Tout ce qu'il faut pour dessiner la barre de niveau, calculé une seule fois.
+export function progressionNiveau(jours, reglages) {
+  const total = pointsTotaux(jours, reglages);
+  const n = niveau(total);
+  const bas = pointsPourNiveau(n);
+  const haut = pointsPourNiveau(n + 1);
+  return {
+    total, niveau: n, rang: rang(n),
+    dansLeNiveau: total - bas,
+    pourLeNiveau: haut - bas,
+    part: (total - bas) / (haut - bas),
+    manque: haut - total,
+  };
+}
+
+// --- Les votes d'identité -------------------------------------------------
+//
+// « Chaque action est un vote pour la personne que tu veux devenir »
+// (James Clear). Les apps qui présentent la régularité comme QUI TU ES font
+// mieux que celles qui la présentent comme CE QUE TU AS FAIT — et un vote se
+// compte, là où une intention ne se compte pas.
+
+export function votes(jours, reglages, finCle, nbJours) {
+  const cles = clesRecentes(finCle, nbJours);
+  const actives = habitudesActives(reglages);
+  let n = 0;
+  for (const cle of cles) {
+    for (const h of actives) if (tenue(h, jours[cle]?.tenu?.[h.id])) n++;
+  }
+  return n;
+}
+
+// --- La semaine en grille -------------------------------------------------
+//
+// Sept cases par habitude, du plus ancien au plus récent. Un trou se voit sans
+// lire un chiffre : c'est la forme la plus dense qui reste lisible au pouce.
+
+export function grilleSemaine(jours, habitude, finCle, gelsUtilises = [], nbJours = 7) {
+  return clesRecentes(finCle, nbJours).map((cle) => {
+    if (gelsUtilises.includes(cle)) return { cle, etat: 'gele' };
+    const valeur = jours[cle]?.tenu?.[habitude.id];
+    if (tenue(habitude, valeur)) return { cle, etat: valeur === 'rattrapee' ? 'partiel' : 'tenu' };
+    if (jourRenseigne(jours[cle])) return { cle, etat: 'rate' };
+    return { cle, etat: 'vide' };
+  });
+}
+
+// --- Le bilan du soir -----------------------------------------------------
+//
+// Ce qu'on lit quand la journée est finie. Factuel : il a demandé un outil,
+// pas un entraîneur. Mais il dit ce qui a bougé — sans ça, une journée tenue
+// ne laisse aucune trace, et c'est exactement le problème que le livre décrit.
+
+export function bilanDuJour(jours, reglages, cle, gelsUtilises = []) {
+  const { gagnes, possibles } = pointsDuJour(jours[cle], reglages);
+  const longue = plusLongueChaine(jours, reglages, cle, gelsUtilises);
+  const prog = progressionNiveau(jours, reglages);
+  const paliers = habitudesActives(reglages)
+    .map((h) => ({ h, n: chaineAvecGels(jours, h, cle, gelsUtilises) }))
+    .filter((x) => palierAtteint(x.n));
+  return {
+    gagnes, possibles,
+    part: possibles === 0 ? 0 : gagnes / possibles,
+    complet: possibles > 0 && gagnes >= possibles,
+    plusLongueChaine: longue,
+    niveau: prog,
+    paliersFranchis: paliers,
+  };
+}

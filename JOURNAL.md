@@ -14,6 +14,116 @@ elle n'est pas redite ici.
 
 ---
 
+# 18/09/2026, 23 h 15 — Sept mécanismes de rétention, chacun tiré d'une mesure publiée et non d'une intuition
+
+Touche : Istiqama
+
+Statut : **demandé par Samer** (« faut que ça joue dans mon cerveau comme un jeu
+qui stimule », « fais des recherches poussées ») · mécanismes **choisis en
+session** d'après la recherche, à contredire s'il veut
+
+## Ce qui a été décidé
+
+- **Le gel de chaîne** : il s'en gagne un tous les 7 jours corrects (60 % des
+  points), le stock est plafonné à trois, il couvre la journée entière, et il ne
+  s'achète pas.
+- **Les paliers** — 7, 14, 21, 30, 60, 100, 180, 365 — et le prochain est
+  toujours nommé à l'écran.
+- **Le niveau et le rang** — huit rangs de *Premier pas* à *Istiqama*, sur une
+  courbe en racine carrée. **Il ne baisse jamais.**
+- **Les votes d'identité**, comptés sur 30 jours.
+- **L'anneau du jour**, avec une transition qu'on voit avancer, et un retour
+  haptique **uniquement quand ça monte**.
+- **La semaine en sept cases** sous chaque habitude, avec quatre états dont le
+  gel.
+- **Le bilan du soir**, ouvert par un bouton.
+- **Le zoom au double-appui est supprimé** (`touch-action: manipulation`), le
+  zoom à deux doigts reste.
+- **Un service ouvrier** sert l'app hors connexion.
+- **Aucune notification programmée n'est construite**, et la raison est
+  documentée.
+
+## Pourquoi
+
+**Chaque mécanisme vient d'une mesure, pas d'une intuition** — les sources sont
+dans `README.md`, § « Ce qui fait qu'on revient ». Les trois qui ont décidé de
+tout :
+
+- **plus de la moitié des gens abandonnent une app de suivi dans les trente
+  jours.** Le problème à résoudre n'est donc pas « avoir des fonctions », c'est
+  franchir le premier mois ;
+- **le gel de chaîne a réduit l'abandon de 21 %** chez Duolingo, et les apps qui
+  en ont gardent leurs gens 17,2 jours après le 7ᵉ contre 11,6 sans. C'est le
+  mécanisme le plus rentable du domaine, et il n'était pas dans l'app ;
+- **le 7ᵉ jour est la bascule** : au-delà, on reste 2,4 fois plus longtemps. Il
+  devait être nommé, pas seulement atteint.
+
+**Le niveau existe pour une raison précise** : la chaîne ne sait que punir. Une
+mauvaise semaine remettait tout à zéro, et c'est le moment exact où l'on ferme
+une app pour de bon. Le niveau est ce qui reste — et c'est la traduction
+littérale de L'Effet cumulé : ce qui est acquis ne se reperd pas.
+
+**Ce qui a été écarté exprès** : le pet virtuel de Finch, le personnage qui
+meurt de Habitica, les classements et les amis. La recherche dit que la
+responsabilité sociale marche bien — mais cette app porte une pratique
+religieuse et de l'argent personnel. Ça ne se partage pas.
+
+**Pourquoi aucune notification programmée** : vérifié ce jour-là, **une app web
+ne peut pas se réveiller seule sur iPhone**. Il faudrait un serveur qui pousse,
+donc l'abonnement du téléphone quitterait le téléphone, donc la première règle
+du projet tomberait. Elle ne doit pas tomber au détour d'une fonctionnalité
+pratique. La chaîne qui marche sans rien coûter — une automatisation
+*Raccourcis* ouvre l'app, l'app dit ce qu'il reste — est dans
+`LISEZ-MOI-DABORD.md`, et le vrai choix est posé dans `A-FAIRE.md`.
+
+## Ce que ça change
+
+- **`logique.js` gagne dix fonctions pures** et reste sans aucun accès à
+  l'écran : tout est testable hors navigateur.
+- **`donnees.js`** porte `gels.utilises` — une simple liste de clés de jour, qui
+  se lit à l'œil nu dans une sauvegarde.
+- **Le service ouvrier est le premier composant du projet que personne n'a pu
+  vérifier.** Il a donc une porte de sortie : *Réglages* → *Vider le cache et
+  recharger*, qui ne touche pas aux données.
+- **`docs/` s'appelait `2-CONSTRUIT/`** jusqu'à l'entrée de 22 h 23 ; les
+  documents qui le nommaient sont à jour.
+
+## Ce qui reste ouvert
+
+- **Le hors-connexion n'a jamais été vu marcher.** Le test est celui de Samer :
+  ouvrir l'app, passer en mode avion, la rouvrir.
+- **Le retour haptique n'a jamais été senti.** Il passe par un détournement de
+  `<input type="checkbox" switch>` (Safari 17.4+), qu'Apple a modifié en
+  iOS 26.5. Il est enveloppé : s'il ne marche pas, rien ne casse.
+- **La vraie notification poussée** — une décision, pas un chantier :
+  `A-FAIRE.md`.
+- **Le mode paysage** et **les trois autres écrans sur l'iPhone**, toujours pas
+  vus.
+
+## Vu passer
+
+- **49 tests, 49 verts.** Vingt et un de plus qu'au matin.
+- **Six protections cassées volontairement et vues rouges**, sur le bon test à
+  chaque fois : le gel qui ne sauve plus rien (2 rouges), le plafond de gels
+  retiré, le seuil du jour correct mis à zéro, le niveau qui ne compte plus que
+  la dernière semaine (2 rouges), `skipWaiting` retiré du service ouvrier, et la
+  course contre la montre retirée de la notification.
+- **Un défaut de justesse trouvé À L'ÉCRAN, que les tests ne voyaient pas** :
+  l'offre de gel annonçait « garde ta chaîne de 39 jours » alors que l'habitude
+  manquée en avait 3 — le chiffre était vrai, et il répondait à une autre
+  question. `chaineSauveeParUnGel` a été écrite pour ça, et son test a été vu
+  rouge sur l'ancien calcul.
+- **Un défaut de mise en page trouvé à l'écran** : la grille de la semaine
+  passait sous les boutons des prières. Elle occupe maintenant sa propre ligne.
+- **Zéro débordement horizontal** — 5 largeurs (320, 375, 430, 768) × 4 onglets,
+  mesuré dans un vrai navigateur, sur les éléments eux-mêmes et pas seulement
+  sur la page.
+- **Une panne silencieuse évitée de justesse** : `navigator.serviceWorker.ready`
+  ne se résout **jamais** quand l'enregistrement a échoué — il n'échoue pas, il
+  attend. La fonction de notification serait restée suspendue pour toujours,
+  sans une ligne d'erreur. Trouvé parce que le navigateur d'aperçu refuse les
+  services ouvriers, et vérifié : **même un service ouvrier vide** y échoue.
+
 # 18/09/2026, 22 h 54 — Le premier vrai test Safari trouve le défaut que rien d'autre ne pouvait voir
 
 Touche : Istiqama

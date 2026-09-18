@@ -122,6 +122,73 @@ writeFileSync(join(SORTIE, 'manifest.webmanifest'), JSON.stringify({
   icons: [{ src: 'icone-512.png', sizes: '512x512', type: 'image/png' }],
 }, null, 2));
 
+// --- le service ouvrier ------------------------------------------------------
+// Il sert l'app hors connexion. Sans lui, un métro sans réseau donne un écran
+// blanc — et une app qu'on n'arrive pas à ouvrir est une app qu'on n'ouvre plus.
+//
+// LE DANGER de ce fichier, et il est réel : un service ouvrier mal écrit sert
+// une vieille version pour toujours. On corrige un défaut, on dépose, et rien
+// ne change sur le téléphone — sans une seule erreur nulle part. Trois parades,
+// toutes indispensables ensemble :
+//   1. le nom du cache contient la VERSION, donc chaque construction en crée un neuf ;
+//   2. `skipWaiting` + `clients.claim` : la nouvelle version prend la main tout
+//      de suite, sans attendre que tous les onglets soient fermés ;
+//   3. la PAGE est cherchée sur le réseau D'ABORD, et ne retombe sur le cache
+//      qu'en cas d'échec. Une page servie depuis le cache gèlerait tout le reste.
+writeFileSync(join(SORTIE, 'service-ouvrier.js'), `// Produit par construire.mjs — ne pas modifier à la main, il est réécrit.
+const CACHE = 'istiqama-${VERSION.replace(/[^0-9]/g, '')}';
+const FICHIERS = ['./', 'index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js',
+  'style.css', 'icone-180.png', 'icone-512.png', 'manifest.webmanifest'];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FICHIERS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil((async () => {
+    for (const nom of await caches.keys()) if (nom !== CACHE) await caches.delete(nom);
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
+  const estLaPage = e.request.mode === 'navigate';
+  e.respondWith((async () => {
+    if (estLaPage) {
+      // Réseau d'abord : c'est ce qui garantit qu'une nouvelle version arrive.
+      try {
+        const reponse = await fetch(e.request);
+        const cache = await caches.open(CACHE);
+        cache.put(e.request, reponse.clone());
+        return reponse;
+      } catch {
+        return (await caches.match('index.html')) || (await caches.match('./')) || Response.error();
+      }
+    }
+    const enCache = await caches.match(e.request, { ignoreSearch: true });
+    if (enCache) return enCache;
+    try {
+      const reponse = await fetch(e.request);
+      if (reponse.ok) (await caches.open(CACHE)).put(e.request, reponse.clone());
+      return reponse;
+    } catch {
+      return Response.error();
+    }
+  })());
+});
+
+// Une notification tapée ramène dans l'app plutôt que d'ouvrir un onglet de plus.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil((async () => {
+    const ouverts = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of ouverts) if ('focus' in c) return c.focus();
+    return self.clients.openWindow('./');
+  })());
+});
+`);
+
 // --- la page -----------------------------------------------------------------
 const page = `<!doctype html>
 <html lang="fr">
@@ -153,6 +220,6 @@ writeFileSync(join(SORTIE, 'index.html'), page);
 // « est-ce bien la dernière version qui est en ligne ? ».
 writeFileSync(join(SORTIE, 'version.txt'), `${VERSION}\n`);
 
-const taille = ['index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js', 'style.css']
+const taille = ['index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js', 'style.css', 'service-ouvrier.js']
   .reduce((s, f) => s + readFileSync(join(SORTIE, f)).length, 0);
-console.log(`Construit — version ${VERSION}, ${(taille / 1024).toFixed(1)} ko de code, icônes 180 et 512.`);
+console.log(`Construit — version ${VERSION}, ${(taille / 1024).toFixed(1)} ko de code, icônes 180 et 512, service ouvrier.`);

@@ -10,6 +10,7 @@ let classeur = D.lire();
 let onglet = 'aujourdhui';
 let fenetre = 30;
 let toutVoir = false;
+let bilanOuvert = false;
 
 const ecran = document.getElementById('ecran');
 const piedOnglets = document.getElementById('onglets');
@@ -18,9 +19,6 @@ const piedOnglets = document.getElementById('onglets');
 // Outils d'affichage
 // ---------------------------------------------------------------------------
 
-// Tout texte venu de Samer passe par ici avant d'entrer dans une page. Il est
-// seul à écrire dans son app, mais une apostrophe ou un chevron dans le nom
-// d'un projet casserait l'écran — et ça ressemblerait à un bug incompréhensible.
 function txt(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -28,6 +26,7 @@ function txt(s) {
 
 const euros = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const pourcent = (x) => `${Math.round(x * 100)} %`;
+const nombre = (x) => (x % 1 === 0 ? String(x) : x.toFixed(1).replace('.', ','));
 
 function dateEnClair(cle) {
   return L.dateDepuisCle(cle).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -40,11 +39,45 @@ function dureeEnClair(minutes) {
   return m === 0 ? `${h} h` : `${h} h ${String(m).padStart(2, '0')}`;
 }
 
+// --- Le retour au doigt ----------------------------------------------------
+//
+// Apple n'a jamais implémenté l'API Vibration dans Safari : `navigator.vibrate`
+// n'existe pas sur iPhone. Le seul chemin qui marche passe par un effet de bord
+// de `<input type="checkbox" switch>` (Safari 17.4+) : basculer cet élément
+// DEPUIS SON LABEL déclenche le moteur haptique du téléphone.
+//
+// C'est un détournement, donc il peut disparaître à une mise à jour d'iOS — il
+// est enveloppé pour que rien ne casse le jour où ça arrive. Un retour au doigt
+// est un confort, jamais une fonction.
+let leviersHaptiques = null;
+function preparerHaptique() {
+  if (leviersHaptiques) return leviersHaptiques;
+  const label = document.createElement('label');
+  label.setAttribute('aria-hidden', 'true');
+  label.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;opacity:0;pointer-events:none';
+  const boite = document.createElement('input');
+  boite.type = 'checkbox';
+  boite.setAttribute('switch', '');
+  label.appendChild(boite);
+  document.body.appendChild(label);
+  leviersHaptiques = { label, boite };
+  return leviersHaptiques;
+}
+
+function vibrer(force = 1) {
+  try {
+    if (navigator.vibrate) { navigator.vibrate(force > 1 ? [12, 40, 12] : 10); return; }
+    const { label } = preparerHaptique();
+    for (let i = 0; i < force; i++) setTimeout(() => label.click(), i * 70);
+  } catch { /* un retour au doigt absent ne doit jamais empêcher de cocher */ }
+}
+
 // ---------------------------------------------------------------------------
 // L'état
 // ---------------------------------------------------------------------------
 
 function aujourdhui() { return L.cleDuJour(); }
+function gels() { return classeur.gels?.utilises || []; }
 
 function jourCourant() {
   const cle = aujourdhui();
@@ -69,30 +102,42 @@ function vueAujourdhui() {
   const matin = L.estLeMatin(classeur.reglages);
   const { maintenant, plusTard } = L.habitudesDuMoment(classeur.reglages, matin);
   const aMontrer = toutVoir ? [...maintenant, ...plusTard] : maintenant;
-
-  const danger = L.habitudesActives(classeur.reglages)
-    .filter((h) => L.enDanger(classeur.jours, h, cle));
+  const prog = L.progressionNiveau(classeur.jours, classeur.reglages);
+  const { gagnes, possibles } = L.pointsDuJour(jour, classeur.reglages);
+  const longue = L.plusLongueChaine(classeur.jours, classeur.reglages, cle, gels());
 
   let html = `
     <div class="entete">
-      <div class="date">${txt(dateEnClair(cle))}</div>
+      <div class="haut-ligne">
+        <div class="date">${txt(dateEnClair(cle))}</div>
+        <button class="rang" data-onglet="cumul">
+          <b>${prog.niveau}</b> · ${txt(prog.rang)}
+        </button>
+      </div>
       <div class="moment">${matin ? 'Ce matin' : 'Ce soir'}</div>
-      <div class="identite">${txt(classeur.reglages.identite)}</div>
     </div>`;
 
-  // L'alerte ne s'affiche QUE le jour où elle a un sens. Une alerte permanente
-  // devient un décor, et on ne la lit plus.
-  if (danger.length > 0) {
-    html += `
-      <div class="alerte">
-        <div class="titre">Jamais deux fois de suite</div>
-        <div class="quoi">Hier, tu as manqué : ${txt(danger.map((h) => h.libelle).join(', '))}.</div>
-        <div class="regle">Manquer une fois est un accident. Manquer deux fois, c'est la nouvelle habitude qui commence.</div>
-      </div>`;
-  }
+  html += blocGelOuAlerte(cle);
 
-  // La chose du jour — une seule. Le principe de « The One Thing » : si tout
-  // le reste tombait à l'eau, laquelle rendrait quand même la journée utile ?
+  // L'anneau : le retour immédiat. Sans lui, cocher une case ne produit rien de
+  // visible, et rien de visible veut dire rien de ressenti.
+  const part = possibles === 0 ? 0 : gagnes / possibles;
+  const reste = Math.max(0, possibles - Math.ceil(gagnes));
+  html += `
+    <div class="carte anneau-carte">
+      <div class="anneau-ligne">
+        ${anneauSVG(part)}
+        <div class="anneau-texte">
+          <div class="anneau-chiffre">${nombre(gagnes)}<span>/${possibles}</span></div>
+          <div class="anneau-quoi">${reste === 0
+    ? 'La journée est pleine.'
+    : `il reste ${reste} chose${reste > 1 ? 's' : ''}`}</div>
+          ${longue.jours > 0 ? ligneChaineEnTete(longue) : ''}
+        </div>
+      </div>
+      ${barreNiveau(prog)}
+    </div>`;
+
   html += `
     <div class="carte chose ${jour.choseFaite ? 'faite' : ''}">
       <h2>La chose du jour</h2>
@@ -103,7 +148,6 @@ function vueAujourdhui() {
       </div>
     </div>`;
 
-  // Les habitudes, groupées par domaine et dans l'ordre des réglages.
   for (const [idDomaine, domaine] of Object.entries(DOMAINES)) {
     const duDomaine = aMontrer.filter((h) => h.domaine === idDomaine);
     if (duDomaine.length === 0) continue;
@@ -118,8 +162,6 @@ function vueAujourdhui() {
     }</button>`;
   }
 
-  // Le soir : les projets et la note. Le matin, ils sont là aussi mais après —
-  // on peut très bien avoir avancé avant midi.
   html += `<div class="carte"><h2>Les projets</h2>`;
   if (classeur.reglages.projets.length === 0) {
     html += `<div class="vide">Aucun projet. Ajoute-les dans les réglages.</div>`;
@@ -141,30 +183,112 @@ function vueAujourdhui() {
     <div class="carte">
       <h2>La journée, en une ligne</h2>
       <textarea id="note" placeholder="Ce qui s'est vraiment passé. Sans arranger.">${txt(jour.note)}</textarea>
-      <div class="note-bas">${txt(phraseDuJour(cle))}</div>
+      <div class="boutons" style="margin-top:12px">
+        <button class="bouton or" data-action="fermer-journee">Fermer la journée</button>
+      </div>
     </div>`;
 
+  if (bilanOuvert) html += vueBilan(cle);
   return html;
+}
+
+// Le gel, ou l'alerte — jamais les deux. Le gel passe devant : s'il y a une
+// porte de sortie, on la montre AVANT de parler d'échec.
+function blocGelOuAlerte(cle) {
+  const enDanger = L.habitudesActives(classeur.reglages).filter((h) => L.enDanger(classeur.jours, h, cle));
+  if (enDanger.length === 0) return '';
+  const hier = L.cleDecalee(cle, -1);
+  if (gels().includes(hier)) return '';
+  // Un refus vaut pour ce jour-là : une proposition qu'on ne peut pas écarter
+  // revient à chaque ouverture, et devient du harcèlement.
+  const refuse = classeur.gelRefuse === hier;
+
+  const stock = L.gelsEnStock(classeur.jours, classeur.reglages, gels());
+  const enJeu = L.chaineSauveeParUnGel(classeur.jours, classeur.reglages, cle, gels());
+
+  if (!refuse && stock > 0 && enJeu.jours > 1) {
+    return `
+      <div class="gel">
+        <div class="titre">◆ Un gel peut sauver hier</div>
+        <div class="quoi">Hier, <b>${txt(enJeu.habitude.libelle)}</b> n'a pas été tenu. Tu as
+        <b>${stock} gel${stock > 1 ? 's' : ''}</b> : en dépenser un efface le trou et garde ta chaîne de
+        <b>${enJeu.jours} jours</b>.</div>
+        <div class="boutons" style="margin-top:11px">
+          <button class="bouton or" data-action="depenser-gel">Dépenser un gel</button>
+          <button class="bouton" data-action="refuser-gel">Non, j'assume</button>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="alerte">
+      <div class="titre">Jamais deux fois de suite</div>
+      <div class="quoi">Hier, tu as manqué : ${txt(enDanger.map((h) => h.libelle).join(', '))}.</div>
+      <div class="regle">Manquer une fois est un accident. Manquer deux fois, c'est la nouvelle habitude qui commence.</div>
+    </div>`;
+}
+
+function ligneChaineEnTete(longue) {
+  const p = L.prochainPalier(longue.jours);
+  return `<div class="anneau-chaine">🔥 ${longue.jours} jours — ${txt(longue.habitude.libelle)}${
+    p ? ` · palier ${p.palier} dans ${p.reste} j` : ''}</div>`;
+}
+
+// L'anneau est dessiné à la main : pas de bibliothèque, net à toutes les
+// tailles, et il s'anime tout seul par une transition CSS sur le tracé.
+function anneauSVG(part) {
+  const r = 46;
+  const tour = 2 * Math.PI * r;
+  return `
+    <svg class="anneau" viewBox="0 0 110 110" aria-hidden="true">
+      <circle cx="55" cy="55" r="${r}" fill="none" stroke="var(--encre)" stroke-width="9" />
+      <circle class="anneau-trace" cx="55" cy="55" r="${r}" fill="none"
+        stroke="${part >= 1 ? 'var(--tenu)' : 'var(--or)'}" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="${tour.toFixed(1)}"
+        stroke-dashoffset="${(tour * (1 - Math.min(1, part))).toFixed(1)}"
+        transform="rotate(-90 55 55)" />
+    </svg>`;
+}
+
+// Le niveau : ce qui ne se perd jamais. La chaîne punit, le niveau garde — sans
+// lui, une mauvaise semaine efface tout et on ferme l'app pour de bon.
+function barreNiveau(prog) {
+  return `
+    <div class="niveau">
+      <div class="niveau-haut">
+        <span>Niveau ${prog.niveau} · ${txt(prog.rang)}</span>
+        <b>${nombre(prog.manque)} pts pour le ${prog.niveau + 1}</b>
+      </div>
+      <div class="barre"><i style="width:${Math.round(prog.part * 100)}%;background:var(--or)"></i></div>
+    </div>`;
 }
 
 function ligneHabitude(h, jour, cle) {
   const valeur = jour.tenu[h.id];
-  const chaine = L.chaineEnCours(classeur.jours, h, cle);
-  const marque = chaine > 0 ? `<div class="chaine">${chaine} j</div>` : '';
+  const chaine = L.chaineAvecGels(classeur.jours, h, cle, gels());
+  const grille = L.grilleSemaine(classeur.jours, h, cle, gels())
+    .map((c) => `<i class="j-${c.etat}"></i>`).join('');
+
   const nom = `
     <div class="nom">
       <div class="libelle">${txt(h.libelle)}</div>
       ${h.detail ? `<div class="detail">${txt(h.detail)}</div>` : ''}
     </div>`;
+  // La semaine occupe sa PROPRE ligne, sur toute la largeur.
+  // Trouvé à l'écran le 18/09/2026 : glissée à côté du nom, elle passait sous
+  // les boutons des prières, qui sont la commande la plus large de l'app.
+  const semaine = `<div class="semaine">${grille}${
+    chaine > 0 ? `<span class="chaine">${chaine >= 7 ? '🔥 ' : ''}${chaine} j</span>` : ''}</div>`;
 
   if (h.type === 'priere') {
     return `
       <div class="ligne ${L.tenue(h, valeur) ? '' : 'rate'}">
-        ${nom}${marque}
+        ${nom}
         <div class="priere-choix">
           <button data-priere="${txt(h.id)}" data-valeur="heure" aria-pressed="${valeur === 'heure'}">à l'heure</button>
           <button class="rattrape" data-priere="${txt(h.id)}" data-valeur="rattrapee" aria-pressed="${valeur === 'rattrapee'}">rattrapée</button>
         </div>
+        ${semaine}
       </div>`;
   }
 
@@ -173,27 +297,56 @@ function ligneHabitude(h, jour, cle) {
     const plein = n >= (h.objectif || 1);
     return `
       <div class="ligne">
-        ${nom}${marque}
+        ${nom}
         <div class="compteur">
           <button data-compteur="${txt(h.id)}" data-pas="-1" aria-label="Moins">−</button>
           <div class="valeur ${plein ? 'plein' : ''}">${n} / ${h.objectif || 1}</div>
           <button data-compteur="${txt(h.id)}" data-pas="1" aria-label="Plus">+</button>
         </div>
+        ${semaine}
       </div>`;
   }
 
   return `
     <div class="ligne ${valeur ? '' : 'rate'}">
-      ${nom}${marque}
+      ${nom}
       <button class="case" data-bascule="${txt(h.id)}" aria-pressed="${!!valeur}" aria-label="${txt(h.libelle)}">✓</button>
+      ${semaine}
     </div>`;
 }
 
-// Une phrase factuelle en bas de l'écran du jour : ce qui a été tenu, sans
-// commentaire. Pas d'encouragement — il a demandé un outil, pas un coach.
-function phraseDuJour(cle) {
-  const { gagnes, possibles } = L.pointsDuJour(classeur.jours[cle], classeur.reglages);
-  return `${gagnes % 1 === 0 ? gagnes : gagnes.toFixed(1)} sur ${possibles} aujourd'hui.`;
+// Le bilan : ce qu'on lit quand la journée est finie. Sans lui, une journée
+// tenue ne laisse aucune trace — et c'est exactement le problème que décrit
+// L'Effet cumulé : l'effort ne renvoie aucun signal.
+function vueBilan(cle) {
+  const b = L.bilanDuJour(classeur.jours, classeur.reglages, cle, gels());
+  const v = L.votes(classeur.jours, classeur.reglages, cle, 30);
+  const prochainGel = L.joursAvantProchainGel(classeur.jours, classeur.reglages);
+
+  let paliers = '';
+  for (const p of b.paliersFranchis) {
+    paliers += `<div class="palier">◆ <b>${p.n} jours</b> de ${txt(p.h.libelle)}${
+      p.n === 7 ? ' — le palier qui compte le plus : au-delà, on tient trois fois plus souvent.' : ''}</div>`;
+  }
+
+  return `
+    <div class="voile" data-action="fermer-bilan">
+      <div class="bilan" role="dialog" aria-label="Bilan de la journée">
+        <div class="bilan-titre">${b.complet ? 'Journée pleine.' : 'Journée fermée.'}</div>
+        <div class="bilan-score">${nombre(b.gagnes)} <span>sur ${b.possibles}</span></div>
+        ${paliers}
+        <div class="bilan-lignes">
+          <div><span>Ta plus longue chaîne</span><b>${b.plusLongueChaine.jours} j${
+  b.plusLongueChaine.habitude ? ` · ${txt(b.plusLongueChaine.habitude.libelle)}` : ''}</b></div>
+          <div><span>Niveau</span><b>${b.niveau.niveau} · ${txt(b.niveau.rang)}</b></div>
+          <div><span>Votes ce mois-ci pour « ${txt(classeur.reglages.identite)} »</span><b>${v}</b></div>
+          <div><span>Prochain gel</span><b>dans ${prochainGel} jour${prochainGel > 1 ? 's' : ''}</b></div>
+        </div>
+        <div class="boutons" style="margin-top:16px">
+          <button class="bouton or" data-action="fermer-bilan">Fermer</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -204,12 +357,31 @@ function vueCumul() {
   const cle = aujourdhui();
   const points = L.courbeCumul(classeur.jours, classeur.reglages, cle, fenetre);
   const actives = L.habitudesActives(classeur.reglages);
+  const prog = L.progressionNiveau(classeur.jours, classeur.reglages);
+  const stock = L.gelsEnStock(classeur.jours, classeur.reglages, gels());
 
   let html = `
     <div class="entete">
       <div class="date">Le cumul</div>
       <div class="moment">Ce qui s'additionne</div>
       <div class="identite">Une journée ne se voit pas. Trente, si.</div>
+    </div>
+
+    <div class="carte">
+      <h2>Ton niveau — il ne se perd jamais</h2>
+      <div class="grand-rang">${prog.niveau} <span>${txt(prog.rang)}</span></div>
+      ${barreNiveau(prog)}
+      <div class="note-bas">${nombre(prog.total)} points depuis le début. Une chaîne se casse ; un niveau, non — c'est ce qui reste après une mauvaise semaine.</div>
+    </div>
+
+    <div class="carte">
+      <h2>Tes gels de chaîne</h2>
+      <div class="gels-rangee">${
+  Array.from({ length: L.GELS_MAX }, (_, i) => `<i class="${i < stock ? 'plein' : ''}"></i>`).join('')
+}<span>${stock} sur ${L.GELS_MAX}</span></div>
+      <div class="note-bas">Un gel efface un jour manqué et garde ta chaîne. Il s'en gagne un tous les ${L.JOURS_PAR_GEL} jours tenus —
+      prochain dans <b>${L.joursAvantProchainGel(classeur.jours, classeur.reglages)} jour${L.joursAvantProchainGel(classeur.jours, classeur.reglages) > 1 ? 's' : ''}</b>.
+      Ils ne s'achètent pas.</div>
     </div>
 
     <div class="carte">
@@ -222,6 +394,13 @@ function vueCumul() {
       <div class="boutons" style="margin-top:12px">
         ${[7, 30, 90].map((n) => `<button class="bouton ${fenetre === n ? 'or' : ''}" data-fenetre="${n}">${n} jours</button>`).join('')}
       </div>
+    </div>
+
+    <div class="carte">
+      <h2>Tes votes — ${fenetre} jours</h2>
+      <div class="grand-rang">${L.votes(classeur.jours, classeur.reglages, cle, fenetre)} <span>votes</span></div>
+      <div class="note-bas">« Chaque action est un vote pour la personne que tu veux devenir. »
+      Ici, la personne est : <b>${txt(classeur.reglages.identite)}</b></div>
     </div>`;
 
   html += `<div class="carte"><h2>Ce que tu as réellement tenu — ${fenetre} jours</h2><div class="parts">`;
@@ -244,14 +423,22 @@ function vueCumul() {
 
   html += `<div class="carte"><h2>Les chaînes</h2>`;
   const chaines = actives
-    .map((h) => ({ h, en: L.chaineEnCours(classeur.jours, h, cle), record: L.meilleureChaine(classeur.jours, h) }))
+    .map((h) => ({
+      h,
+      en: L.chaineAvecGels(classeur.jours, h, cle, gels()),
+      record: L.meilleureChaine(classeur.jours, h),
+    }))
     .sort((a, b) => b.en - a.en);
   for (const c of chaines) {
+    const p = L.prochainPalier(c.en);
     html += `
       <div class="ligne">
-        <div class="nom"><div class="libelle">${txt(c.h.libelle)}</div>
-        <div class="detail">record : ${c.record} j</div></div>
-        <div class="chaine" style="font-size:17px">${c.en} j</div>
+        <div class="nom">
+          <div class="libelle">${txt(c.h.libelle)}</div>
+          <div class="detail">record : ${c.record} j${p ? ` · palier ${p.palier} dans ${p.reste} j` : ' · tous les paliers franchis'}</div>
+        </div>
+        <div class="chaine" style="font-size:17px">${c.en >= 7 ? '🔥 ' : ''}${c.en} j</div>
+        <div class="semaine">${L.grilleSemaine(classeur.jours, c.h, cle, gels()).map((x) => `<i class="j-${x.etat}"></i>`).join('')}</div>
       </div>`;
   }
   html += `</div>`;
@@ -274,8 +461,6 @@ function vueCumul() {
   return html;
 }
 
-// La courbe est dessinée à la main en SVG : aucune bibliothèque à charger, et
-// elle reste nette à toutes les largeurs.
 function courbeSVG(points) {
   const large = 520;
   const haut = 170;
@@ -415,6 +600,8 @@ function phraseVerdict(p) {
 
 function vueReglages() {
   const r = classeur.reglages;
+  const permission = typeof Notification === 'undefined' ? 'absente' : Notification.permission;
+
   let html = `
     <div class="entete">
       <div class="date">Réglages</div>
@@ -424,9 +611,27 @@ function vueReglages() {
 
     <div class="carte">
       <h2>Qui tu es</h2>
-      <label class="champ"><span>La phrase du haut de l'écran</span>
+      <label class="champ"><span>La phrase du haut de l'écran, et ce pour quoi tu votes</span>
         <input type="text" id="identite" value="${txt(r.identite)}" /></label>
-      <div class="note-bas">Une habitude tient quand elle prouve une identité, pas quand elle vise un résultat.</div>
+      <div class="note-bas">Une habitude tient quand elle prouve une identité, pas quand elle vise un résultat.
+      Chaque case cochée est un vote — l'app les compte dans l'onglet Le cumul.</div>
+    </div>
+
+    <div class="carte">
+      <h2>Le rappel du jour</h2>
+      <div class="rappel-etat ${permission === 'granted' ? 'ok' : ''}">${etatRappel(permission)}</div>
+      ${permission === 'granted' ? '' : `
+        <div class="boutons" style="margin-top:11px">
+          <button class="bouton or" data-action="autoriser-rappels">Autoriser les notifications</button>
+        </div>`}
+      <div class="note-bas" style="margin-top:12px">
+        <b>Ce qu'une app web NE PEUT PAS faire sur iPhone</b> : se réveiller toute seule à 7 h.
+        Il faudrait un serveur qui envoie la notification — donc tes données quitteraient le téléphone.
+        <br><br>
+        <b>Ce qui marche, et qui prend deux minutes</b> : une automatisation de l'app <i>Raccourcis</i>.
+        Elle ouvre Istiqama à l'heure que tu veux, et l'app te dit alors ce qu'il te reste.
+        Le mode d'emploi exact est dans <i>LISEZ-MOI-DABORD.md</i>, § « Le rappel du jour ».
+      </div>
     </div>
 
     <div class="carte">
@@ -448,7 +653,9 @@ function vueReglages() {
              <input type="text" data-habitude="${i}" data-champ="detail" value="${txt(h.detail || '')}" placeholder="ex. pas de sucre ajouté" /></label>`}
       </div>`;
   });
-  html += `<div class="note-bas">Une habitude éteinte garde son histoire : elle sort des comptes, elle ne s'efface pas.</div></div>`;
+  html += `<div class="note-bas">Une habitude éteinte garde son histoire : elle sort des comptes, elle ne s'efface pas.
+  Et peu d'habitudes tenues battent toujours beaucoup d'habitudes abandonnées — plus de la moitié des gens
+  arrêtent une app de suivi dans les trente jours, presque toujours pour en avoir mis trop.</div></div>`;
 
   html += `
     <div class="carte">
@@ -478,8 +685,27 @@ function vueReglages() {
         <button class="bouton" data-action="restaurer">Restaurer un fichier</button>
       </div>
       <input type="file" id="fichier-restauration" accept="application/json,.json" style="display:none" />
+    </div>
+
+    <div class="carte">
+      <h2>Si l'app se coince sur une vieille version</h2>
+      <div class="note-bas" style="margin:0 0 12px">
+        L'app garde une copie d'elle-même dans le téléphone pour marcher sans réseau.
+        Si un jour elle refuse de se mettre à jour, ce bouton efface cette copie et la
+        recharge. <b>Tes données ne sont pas touchées</b> — elles vivent ailleurs.
+      </div>
+      <div class="boutons">
+        <button class="bouton danger" data-action="vider-le-cache">Vider le cache et recharger</button>
+      </div>
     </div>`;
   return html;
+}
+
+function etatRappel(permission) {
+  if (permission === 'absente') return "Ce navigateur ne connaît pas les notifications. Rien à activer.";
+  if (permission === 'granted') return "✓ Les notifications sont autorisées. L'app peut t'afficher ce qu'il te reste quand elle s'ouvre.";
+  if (permission === 'denied') return "Les notifications ont été refusées. Ça se change dans Réglages › Istiqama › Notifications, sur le téléphone.";
+  return "Les notifications ne sont pas encore autorisées.";
 }
 
 // ---------------------------------------------------------------------------
@@ -503,9 +729,6 @@ function rendre() {
   brancherChamps();
 }
 
-// Les champs de texte NE déclenchent PAS de nouveau rendu : reconstruire
-// l'écran à chaque frappe ferait perdre le curseur au bout d'une lettre.
-// Ils écrivent dans l'état, et l'enregistrement est différé.
 function brancherChamps() {
   const surSaisie = (selecteur, action) => {
     for (const champ of ecran.querySelectorAll(selecteur)) {
@@ -555,19 +778,19 @@ function brancherChamps() {
 }
 
 document.addEventListener('click', (e) => {
-  const cible = e.target.closest('button');
+  const cible = e.target.closest('button, [data-action]');
   if (!cible) return;
   const jour = jourCourant();
 
-  if (cible.dataset.onglet) { onglet = cible.dataset.onglet; toutVoir = false; rendre(); return; }
+  if (cible.dataset.onglet) { onglet = cible.dataset.onglet; toutVoir = false; bilanOuvert = false; rendre(); return; }
   if (cible.dataset.fenetre) { fenetre = Number(cible.dataset.fenetre); rendre(); return; }
+
+  const avant = L.pointsDuJour(jour, classeur.reglages).gagnes;
 
   if (cible.dataset.bascule) {
     jour.tenu[cible.dataset.bascule] = !jour.tenu[cible.dataset.bascule];
   } else if (cible.dataset.priere) {
     const id = cible.dataset.priere;
-    // Ré-appuyer sur le choix déjà fait l'annule : c'est ainsi qu'on corrige
-    // une erreur sans avoir à chercher un troisième bouton.
     jour.tenu[id] = jour.tenu[id] === cible.dataset.valeur ? 'non' : cible.dataset.valeur;
   } else if (cible.dataset.compteur) {
     const id = cible.dataset.compteur;
@@ -575,6 +798,14 @@ document.addEventListener('click', (e) => {
   } else if (cible.dataset.action) {
     if (!agir(cible.dataset.action, cible)) return;
   } else return;
+
+  // Le retour au doigt ne se déclenche qu'en MONTANT : décocher une erreur ne
+  // doit pas être récompensé, sinon le signal ne veut plus rien dire.
+  const apres = L.pointsDuJour(jour, classeur.reglages).gagnes;
+  if (apres > avant) {
+    const possibles = L.pointsDuJour(jour, classeur.reglages).possibles;
+    vibrer(apres >= possibles ? 3 : 1);
+  }
 
   enregistrer();
   rendre();
@@ -588,6 +819,28 @@ function agir(action, bouton) {
     case 'tout-voir':
       toutVoir = !toutVoir;
       return true;
+    case 'fermer-journee':
+      bilanOuvert = true;
+      vibrer(2);
+      return true;
+    case 'fermer-bilan':
+      bilanOuvert = false;
+      return true;
+    case 'depenser-gel': {
+      const hier = L.cleDecalee(aujourdhui(), -1);
+      if (!classeur.gels) classeur.gels = { utilises: [] };
+      if (!classeur.gels.utilises.includes(hier)) classeur.gels.utilises.push(hier);
+      vibrer(2);
+      return true;
+    }
+    case 'refuser-gel':
+      // On marque la journée comme vue, sinon l'offre reviendrait à chaque
+      // ouverture — et une proposition qu'on ne peut pas écarter est un harcèlement.
+      classeur.gelRefuse = L.cleDecalee(aujourdhui(), -1);
+      return true;
+    case 'autoriser-rappels':
+      demanderRappels();
+      return false;
     case 'ajouter-placement':
       classeur.argent.placements.push({ nom: '', investi: 0, valeur: '' });
       return true;
@@ -603,6 +856,9 @@ function agir(action, bouton) {
       h.actif = h.actif === false;
       return true;
     }
+    case 'vider-le-cache':
+      viderLeCache();
+      return false;
     case 'sauvegarder':
       sauvegarder();
       return true;
@@ -612,6 +868,63 @@ function agir(action, bouton) {
     default:
       return false;
   }
+}
+
+// --- Les rappels -----------------------------------------------------------
+//
+// Ce que l'app peut honnêtement faire : afficher ce qu'il reste QUAND ELLE
+// S'OUVRE. Ce qu'elle ne peut pas : se réveiller seule. Une app web sur iPhone
+// n'a aucun moyen de programmer une notification locale ; il faudrait un
+// serveur qui la pousse, donc des données qui quittent le téléphone.
+//
+// La chaîne qui marche, et qui ne coûte rien : une automatisation Raccourcis
+// ouvre Istiqama à l'heure dite → Istiqama affiche ce qu'il reste. Le mode
+// d'emploi est dans LISEZ-MOI-DABORD.md.
+async function demanderRappels() {
+  try {
+    if (typeof Notification === 'undefined') return;
+    await Notification.requestPermission();
+    rendre();
+  } catch { /* un refus n'est pas une panne */ }
+}
+
+async function direCeQuiReste() {
+  try {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    const cle = aujourdhui();
+    const { gagnes, possibles } = L.pointsDuJour(classeur.jours[cle], classeur.reglages);
+    const reste = Math.max(0, possibles - Math.ceil(gagnes));
+    if (reste === 0) return;
+    const longue = L.plusLongueChaine(classeur.jours, classeur.reglages, cle, gels());
+    const corps = longue.jours > 0
+      ? `Il te reste ${reste} chose${reste > 1 ? 's' : ''}. Chaîne en cours : ${longue.jours} jours.`
+      : `Il te reste ${reste} chose${reste > 1 ? 's' : ''} aujourd'hui.`;
+
+    // `navigator.serviceWorker.ready` ne se résout JAMAIS quand l'enregistrement
+    // a échoué — il ne rejette pas, il attend. Sans cette course, la fonction
+    // resterait suspendue pour toujours, sans une ligne d'erreur. Vécu le
+    // 18/09/2026 : le service ouvrier ne s'enregistre pas dans certains
+    // navigateurs, et la promesse ne revenait pas.
+    const inscription = await Promise.race([
+      navigator.serviceWorker?.ready,
+      new Promise((r) => setTimeout(() => r(null), 1500)),
+    ]);
+    const options = { body: corps, tag: `istiqama-${cle}`, icon: 'icone-180.png' };
+    if (inscription) await inscription.showNotification('Istiqama', options);
+    else new Notification('Istiqama', options);   // sans service ouvrier, la voie directe
+  } catch { /* jamais au prix d'un écran blanc */ }
+}
+
+// La porte de sortie d'un composant que personne n'a pu vérifier ici : le
+// service ouvrier ne s'enregistre pas dans tous les navigateurs, et un service
+// ouvrier coincé sert une vieille version POUR TOUJOURS, sans une erreur nulle
+// part. C'est la panne silencieuse la plus chère de ce genre de fichier.
+async function viderLeCache() {
+  try {
+    for (const r of await navigator.serviceWorker?.getRegistrations?.() || []) await r.unregister();
+    for (const nom of await caches?.keys?.() || []) await caches.delete(nom);
+  } catch { /* on recharge quand même : c'est l'essentiel */ }
+  location.reload();
 }
 
 function sauvegarder() {
@@ -631,8 +944,6 @@ function lireFichierRestauration(e) {
   lecteur.onload = () => {
     try {
       const repris = D.depuisTexte(String(lecteur.result));
-      // On demande AVANT d'écraser : une restauration par erreur effacerait des
-      // mois de suivi, et rien ne permettrait de revenir en arrière.
       const nb = Object.keys(repris.jours).length;
       if (!confirm(`Remplacer tout ce que contient l'app par cette sauvegarde (${nb} journée${nb > 1 ? 's' : ''}) ?`)) return;
       classeur = repris;
@@ -649,10 +960,19 @@ function lireFichierRestauration(e) {
 // toute seule, sans qu'on la ferme.
 let jourAffiche = aujourdhui();
 setInterval(() => {
-  if (aujourdhui() !== jourAffiche) { jourAffiche = aujourdhui(); rendre(); }
+  if (aujourdhui() !== jourAffiche) { jourAffiche = aujourdhui(); bilanOuvert = false; rendre(); }
 }, 60000);
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && aujourdhui() !== jourAffiche) { jourAffiche = aujourdhui(); rendre(); }
+  if (document.hidden) return;
+  if (aujourdhui() !== jourAffiche) { jourAffiche = aujourdhui(); bilanOuvert = false; rendre(); }
+  direCeQuiReste();
 });
 
+// Le service ouvrier : il sert l'app hors connexion. Sans lui, un métro sans
+// réseau = un écran blanc, et une app qu'on n'ouvre pas est une app morte.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-ouvrier.js').catch(() => { /* hors ligne n'est qu'un confort */ });
+}
+
 rendre();
+direCeQuiReste();
