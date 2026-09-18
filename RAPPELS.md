@@ -87,26 +87,33 @@ répétition **Quotidienne** → *Suivant* → **Exécuter le raccourci** → ch
 immédiatement** et coupe **Demander avant d'exécuter**. Sans ça il faut
 confirmer chaque fois, et on arrête au bout de trois jours.
 
-### Le dhikr — 15 automatisations, toutes sur *Dhikr*
+**Les heures suivent la journée de Samer, pas une journée moyenne** : réveil
+vers **10 h 30**, coucher **après minuit** (dit par lui le 19/09/2026). Un
+rappel qui part pendant qu'on dort est pire qu'un rappel absent : il apprend à
+ignorer les notifications de l'app.
+
+### Le dhikr — 13 automatisations, toutes sur *Dhikr*
 
 ```
-07:00  08:00  09:00  10:00  11:00
-12:00  13:00  14:00  15:00  16:00
-17:00  18:00  19:00  20:00  21:00
+11:00  12:00  13:00  14:00  15:00
+16:00  17:00  18:00  19:00  20:00
+21:00  22:00  23:00
 ```
 
-**Tu peux commencer par cinq** (08:00, 11:00, 14:00, 17:00, 20:00) et en
-ajouter si ça te va. Quinze d'un coup, c'est vingt minutes de tapotage, et rien
+**Tu peux commencer par cinq** (11:00, 14:00, 17:00, 20:00, 22:00) et en
+ajouter si ça te va. Treize d'un coup, c'est vingt minutes de tapotage, et rien
 ne dit que tu les voudras toutes.
 
 ### L'eau — 8 automatisations, toutes sur *Eau*
 
 ```
-06:30  08:30  10:30  12:30
-14:30  16:30  18:30  20:30
+10:30  12:00  14:00  16:00
+18:00  20:00  21:30  23:00
 ```
 
-Décalées des repas, et rien après 21 h.
+**Le premier au réveil**, parce qu'on se lève déshydraté après une nuit. Le
+dernier vers 23 h, soit environ une heure et demie avant de dormir — assez tôt
+pour ne pas te réveiller la nuit.
 
 ---
 
@@ -119,5 +126,8 @@ Décalées des repas, et rien après 21 h.
   et une app web encore moins. Le seul chemin fiable serait une vraie app
   native, ou un serveur qui pousse — et ce dernier ferait sortir l'adresse de
   notification du téléphone (`A-FAIRE.md`).
+- **Le Fajr n'a pas de rappel d'eau.** Si tu te lèves pour la prière puis te
+  rendors, dis-le : on ajoute une automatisation, et on en retire une le soir
+  pour rester à huit verres.
 - **Le vendredi n'est pas traité à part.** Si tu veux que les rappels se taisent
   ce jour-là, dis-le : ça se fait dans le raccourci, pas dans l'app.

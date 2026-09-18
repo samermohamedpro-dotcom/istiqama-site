@@ -7,6 +7,9 @@ elle n'est pas redite ici.
 **Index des corrections.** Une entrée devenue fausse se corrige par une
 **nouvelle** entrée, jamais en modifiant l'ancienne, et se signale ici.
 
+- **19/09/2026, 00 h 07** — les heures des rappels (dhikr 07:00–21:00, eau
+  06:30–20:30). **Fausses dès le départ** : elles supposaient une journée
+  7 h – 21 h que personne n'avait demandée. Corrigées par l'entrée de 00 h 10.
 - **18/09/2026, 23 h 15** — « le hors-connexion n'a jamais été vu marcher » et
   « le service ouvrier est le premier composant que personne n'a pu vérifier ».
   **Réglé onze minutes plus tard** par l'entrée de 23 h 26 : Samer l'a essayé en
@@ -17,6 +20,54 @@ elle n'est pas redite ici.
   `istiqama-site` existe, il est public, et l'app est servie par GitHub Pages.
 
 ---
+
+# 19/09/2026, 00 h 10 — Les rappels suivent SA journée, pas une journée moyenne
+
+Touche : Istiqama
+
+Statut : **dit par Samer** — « pour l'eau 6h30 je dors encore je me réveil que
+à partir de 10h30 et me couche après 00h »
+
+## Ce qui a été décidé
+
+- **L'eau** : 10:30 · 12:00 · 14:00 · 16:00 · 18:00 · 20:00 · 21:30 · 23:00.
+- **Le dhikr** : toutes les heures de **11:00 à 23:00**, soit 13 automatisations
+  au lieu de 15.
+
+## Pourquoi
+
+**Les heures d'hier soir étaient fausses dès l'instant où je les ai écrites.**
+J'avais calé 07:00–21:00 pour le dhikr et 06:30 pour le premier verre d'eau,
+sur une journée moyenne que personne n'avait demandée. Samer se lève vers
+10 h 30 et se couche après minuit : six rappels de dhikr partaient pendant qu'il
+dormait, et le premier verre d'eau arrivait quatre heures avant son réveil.
+
+**Ce n'est pas un détail de confort.** Un rappel qui sonne pendant qu'on dort
+apprend à ignorer les notifications de l'app — et une notification qu'on ignore
+est pire qu'une notification absente. Ça aurait tué le mécanisme avant qu'il
+serve.
+
+**Ce que ça dit sur ma façon de faire** : j'ai proposé des heures précises sans
+demander à quelle heure il se lève. La question tenait en une ligne.
+
+## Ce que ça change
+
+- **`RAPPELS.md`** porte les nouvelles heures, et dit d'où elles viennent.
+- **Le premier verre est au réveil**, parce qu'on se lève déshydraté ; le
+  dernier à 23 h, assez tôt pour ne pas réveiller la nuit.
+- **Aucun code n'a changé** : les heures ne vivent que dans les automatisations
+  du téléphone et dans ce document.
+
+## Ce qui reste ouvert
+
+- **Le Fajr.** S'il se lève pour la prière puis se rendort, il manque un verre
+  d'eau à ce moment-là — et il faudrait en retirer un le soir pour rester à
+  huit. Posé, pas tranché.
+- **Le vendredi**, toujours pas traité à part.
+
+## Vu passer
+
+- Rien lancé : seuls deux documents ont changé.
 
 # 19/09/2026, 00 h 07 — Le dhikr toutes les heures et l'eau huit fois : par Raccourcis, parce qu'iOS ne sait pas faire autrement
 
