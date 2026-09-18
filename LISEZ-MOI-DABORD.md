@@ -16,7 +16,7 @@
 | `tests.mjs` | les tests du calcul | 28, tous vus rouges avant d'être verts |
 | `verifier.sh` | tests + construction + contrôle que le construit n'est pas en retard | fait |
 | `docs/` | **effacé et refait à chaque construction.** C'est lui que sert GitHub Pages. Rien ne s'y dépose à la main | produit |
-| `docs/service-ouvrier.js` | produit par `construire.mjs` : l'app hors connexion | **jamais vu marcher** — voir `A-FAIRE.md` |
+| `docs/service-ouvrier.js` | produit par `construire.mjs` : l'app hors connexion | **vu marcher** — Samer, mode avion, 18/09/2026 |
 
 ## Les écrans
 

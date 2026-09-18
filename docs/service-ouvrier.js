@@ -1,5 +1,5 @@
 // Produit par construire.mjs — ne pas modifier à la main, il est réécrit.
-const CACHE = 'istiqama-202609182316';
+const CACHE = 'istiqama-202609182326';
 const FICHIERS = ['./', 'index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js',
   'style.css', 'icone-180.png', 'icone-512.png', 'manifest.webmanifest'];
 

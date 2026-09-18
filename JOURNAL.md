@@ -7,12 +7,68 @@ elle n'est pas redite ici.
 **Index des corrections.** Une entrée devenue fausse se corrige par une
 **nouvelle** entrée, jamais en modifiant l'ancienne, et se signale ici.
 
+- **18/09/2026, 23 h 15** — « le hors-connexion n'a jamais été vu marcher » et
+  « le service ouvrier est le premier composant que personne n'a pu vérifier ».
+  **Réglé onze minutes plus tard** par l'entrée de 23 h 26 : Samer l'a essayé en
+  mode avion, ça marche.
 - **18/09/2026, 20 h 33** — « Aucun dépôt git n'a été créé », et les points
   ouverts « comment mettre l'app sur le téléphone » et « un dépôt git, ou
   pas ». **Réglés le même soir** par l'entrée de 22 h 23 : le dépôt
   `istiqama-site` existe, il est public, et l'app est servie par GitHub Pages.
 
 ---
+
+# 18/09/2026, 23 h 26 — Le hors-connexion marche : c'est Samer qui l'a prouvé, pas une machine
+
+Touche : Istiqama
+
+Statut : **constaté par Samer sur son iPhone**
+
+## Ce qui a été décidé
+
+- **Le point « le hors-connexion n'a jamais été vu marcher » est CLOS**, et
+  archivé avec son titre dans `archives/A-FAIRE-ISTIQAMA-fait-2026-09.md`.
+- **La porte de sortie reste** : *Réglages* → *Vider le cache et recharger*.
+
+## Pourquoi
+
+**Ce qu'il a fait, et c'est le seul essai qui pouvait trancher** : app
+rechargée, **mode avion**, app rouverte. Elle s'affiche.
+
+Onze minutes plus tôt, ce composant était le seul du projet que personne n'avait
+vu fonctionner — et pas par négligence : le navigateur d'aperçu refuse
+d'enregistrer un service ouvrier, **même vide**, ce qui avait été vérifié. Les
+trois tests écrits à la place ne lisaient que les parades DÉCLARÉES dans le
+fichier produit ; ils ne prouvaient rien sur son comportement réel. Ils gardent
+exactement cette valeur-là, ni plus ni moins.
+
+**Pourquoi la porte de sortie reste, alors que ça marche.** Elle ne protégeait
+pas seulement contre un service ouvrier qui ne s'enregistre pas — ce risque-là
+est levé. Elle protège contre un service ouvrier qui **se coince sur une vieille
+version**, et ce risque-là ne l'est pas : c'est une panne qui ne fait aucun
+bruit. On corrigerait un défaut, on déposerait, et rien ne changerait sur le
+téléphone.
+
+## Ce que ça change
+
+- **`A-FAIRE.md`** perd une ligne de son tableau et une section entière.
+- **`LISEZ-MOI-DABORD.md`** : le service ouvrier passe de « jamais vu marcher »
+  à « vu marcher — Samer, mode avion ».
+- **Ce qui reste invérifié se réduit à trois choses** : le retour haptique, le
+  mode paysage, et les trois écrans autres qu'*Aujourd'hui* sur l'iPhone.
+
+## Ce qui reste ouvert
+
+- **Le retour haptique n'a jamais été senti.**
+- **Le mode paysage**, et **les trois autres écrans sur l'iPhone**.
+- **La vraie notification poussée** — une décision de Samer, pas un chantier.
+- **Ses vraies valeurs** ne sont toujours pas saisies.
+
+## Vu passer
+
+- **Le seul essai qui comptait, fait par Samer** : mode avion, app rouverte,
+  elle s'affiche.
+- Rien d'autre n'a été lancé : aucun code n'a changé, seuls les documents.
 
 # 18/09/2026, 23 h 15 — Sept mécanismes de rétention, chacun tiré d'une mesure publiée et non d'une intuition
 

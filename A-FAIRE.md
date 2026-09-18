@@ -9,7 +9,6 @@ point, et le renvoi devient faux en silence.
 | finir la mise sur le téléphone | **deux gestes de Samer** : activer Pages, ajouter l'icône |
 | Safari : un défaut trouvé, deux angles morts | le paysage, et trois écrans jamais vus |
 | lui donner ses vraies valeurs | dix minutes, un soir |
-| le hors-connexion n'a jamais été vu marcher | **le test de Samer**, sur son iPhone |
 | connecter les dépenses à la banque | un vrai chantier, à trancher |
 | la sauvegarde qui ne demande rien | après le téléphone |
 
@@ -72,28 +71,6 @@ L'app démarre avec des valeurs de départ, pas avec les siennes :
 - **la phrase d'identité**, en haut de l'écran.
 
 Tout se change dans Réglages, sans toucher au code.
-
-## Le hors-connexion n'a jamais été vu marcher
-
-Le service ouvrier (`docs/service-ouvrier.js`, produit par `construire.mjs`)
-sert l'app sans réseau. **Il n'a été vérifié nulle part**, et pas par
-négligence : le 18/09/2026, le navigateur d'aperçu a refusé de l'enregistrer —
-**même un service ouvrier vide** —, donc aucun essai n'était possible depuis le
-Mac.
-
-**Ce qui a été vérifié à la place** : trois tests lisent le fichier produit et
-vérifient que ses parades sont déclarées — un cache dont le nom porte la
-version, `skipWaiting` + `clients.claim`, la suppression des vieux caches, et la
-page cherchée sur le **réseau d'abord**. Ensemble, elles empêchent la panne la
-plus chère de ce genre de fichier : **servir une vieille version pour toujours,
-sans une seule erreur nulle part.**
-
-**Le test réel, à faire sur l'iPhone** : ouvrir l'app, puis passer en mode
-avion, puis la rouvrir. Elle doit s'afficher.
-
-**Et si un jour elle refuse de se mettre à jour** : *Réglages* → dernière carte
-→ *Vider le cache et recharger*. Cette porte de sortie existe **parce que** ce
-composant n'a pas pu être vérifié.
 
 ## Le rappel ne se déclenche pas tout seul — et il y a une décision à prendre
 
