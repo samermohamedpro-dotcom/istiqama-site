@@ -1,0 +1,20 @@
+# Écrit AVANT le premier commit, jamais après : un .gitignore posé après coup
+# arrive trop tard, ce qui devait rester dehors est déjà dans l'historique.
+
+# Attention : dans un .gitignore, les guillemets sont des caractères comme les
+# autres. Un nom à espaces s'écrit nu, sinon la ligne ne filtre rien et
+# personne ne s'en aperçoit.
+
+# `docs/` N'EST PAS ignoré, et c'est exprès : c'est ce dossier que GitHub Pages
+# sert. Il est refait par `node construire.mjs` avant chaque dépôt, et il ne
+# contient QUE du code — jamais une donnée. Les données ne quittent pas le
+# téléphone.
+
+# Une sauvegarde d'Istiqama contient des prières, des montants et des notes
+# personnelles. Elle ne doit JAMAIS entrer dans un dépôt, même privé — un
+# dépôt se clone, se partage, se restaure ailleurs.
+istiqama-*.json
+sauvegardes/
+
+.DS_Store
+node_modules/
