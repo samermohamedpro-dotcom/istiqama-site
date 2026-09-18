@@ -14,6 +14,73 @@ elle n'est pas redite ici.
 
 ---
 
+# 18/09/2026, 22 h 54 — Le premier vrai test Safari trouve le défaut que rien d'autre ne pouvait voir
+
+Touche : Istiqama
+
+Statut : **constaté par Samer sur son iPhone**, corrigé et protégé le soir même
+
+## Ce qui a été décidé
+
+- **`#ecran` réserve désormais les quatre marges de sécurité de l'iPhone** —
+  haut, bas, gauche et droite — et pas seulement celle du bas.
+- **Trois tests neufs gardent la règle** : la présence des marges haut et bas
+  sur `#ecran`, celle du bas sur la barre d'onglets, et le fait que
+  `viewport-fit=cover` et les marges vont toujours ensemble.
+
+## Pourquoi
+
+**Le défaut, tel que Samer l'a vu** : la ligne de date — « VENDREDI 18
+SEPTEMBRE » — était illisible, l'heure du téléphone et l'icône de batterie
+posées par-dessus. Sa capture le montre sans ambiguïté.
+
+**La cause** : la page déclare `viewport-fit=cover`, ce qui la fait s'étendre
+**sous** la barre d'état et sous l'encoche. La marge du bas avait été réservée
+(`env(safe-area-inset-bottom)` sur `#ecran` et sur la barre d'onglets), celle du
+haut avait été oubliée. Un seul `env()` manquant, et le premier élément de
+l'écran disparaît.
+
+**Et voilà pourquoi aucun contrôle ne l'a vu** : sur un navigateur de bureau,
+`env(safe-area-inset-top)` vaut **zéro**. Les quatre écrans avaient été
+regardés à 375 × 812, en HTTP, sans une erreur en console — et le défaut était
+là, entier. C'est la panne silencieuse dans sa forme la plus pure : l'outil de
+mesure ne peut pas voir la chose qu'on lui demande de mesurer, et il répond
+vert.
+
+**Ce que ça confirme sur la méthode** : le point « Safari n'est testé nulle
+part » n'était pas une précaution de style. Il a rapporté un défaut réel au
+premier essai, sur le tout premier écran de l'app.
+
+## Ce que ça change
+
+- **La barre d'onglets, elle, était juste** : la capture de Samer la montre
+  au-dessus de la barre de gestes. La parade du bas fonctionne — elle est
+  maintenant vue marcher, plus seulement posée.
+- **Les trois tests neufs ne remplacent pas un iPhone.** Ils lisent la feuille
+  de style à sa source et vérifient que la règle est déclarée. Ils empêchent la
+  régression ; ils ne découvrent rien. C'est écrit en tête de leur section pour
+  que personne ne s'y trompe.
+
+## Ce qui reste ouvert
+
+- **Le mode paysage n'a pas été essayé.** Les marges gauche et droite sont
+  posées dans le même mouvement, donc elles aussi à l'aveugle.
+- **Les trois autres écrans** (Le cumul, L'argent, Réglages) n'ont pas été vus
+  sur l'iPhone. Ils partagent le même `#ecran`, donc la correction vaut pour
+  eux — mais « donc » n'est pas « vu ».
+
+## Vu passer
+
+- **Les trois tests neufs vus ROUGES avant la correction** : « la page réserve
+  les marges de sécurité EN HAUT comme en bas » échouait sur la feuille de style
+  telle qu'elle était, avec le message qui nomme la conséquence. 30 verts, 1
+  rouge.
+- **Après correction : 31 tests, 31 verts.**
+- **La correction regardée à l'écran**, avec l'encoche simulée (59 px en haut,
+  34 px en bas, matérialisée par une bande rouge) : la date passe nettement
+  sous la bande. Et sur un écran sans encoche, la marge du haut reste à 16 px —
+  aucune régression.
+
 # 18/09/2026, 22 h 23 — Istiqama est en ligne : un seul dépôt public, et son nom est désormais son adresse
 
 Touche : Istiqama · `depots-github.md` (la liste des dépôts de Samer)

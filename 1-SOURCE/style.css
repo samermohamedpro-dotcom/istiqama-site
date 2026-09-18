@@ -41,10 +41,22 @@ html, body {
    du même auteur, réglé le 08/09/2026. */
 body { min-height: 100dvh; }
 
+/* Les marges de sécurité, EN HAUT comme en bas.
+   La page déclare `viewport-fit=cover`, donc elle s'étend sous la barre d'état,
+   sous l'encoche et sous la barre de gestes. Sans ces `env()`, le contenu passe
+   dessous et devient illisible — c'est ce que Samer a vu le 18/09/2026 sur son
+   iPhone : la date du jour était cachée derrière l'heure et la batterie.
+   Aucun navigateur de bureau ne peut le reproduire : `env(safe-area-inset-top)`
+   y vaut zéro, et les quatre écrans passaient donc pour vérifiés.
+   Les côtés sont là pour le mode paysage, où l'encoche mange un bord. */
 #ecran {
   max-width: 560px;
   margin: 0 auto;
-  padding: 16px 16px calc(84px + env(safe-area-inset-bottom));
+  padding:
+    calc(16px + env(safe-area-inset-top))
+    calc(16px + env(safe-area-inset-right))
+    calc(84px + env(safe-area-inset-bottom))
+    calc(16px + env(safe-area-inset-left));
 }
 
 /* --- en-tête ------------------------------------------------------------- */

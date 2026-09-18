@@ -7,7 +7,7 @@ point, et le renvoi devient faux en silence.
 | Le point | Ce qui l'attend |
 |---|---|
 | finir la mise sur le téléphone | **deux gestes de Samer** : activer Pages, ajouter l'icône |
-| Safari n'est testé nulle part | le même trou que chez Petit Gâteau |
+| Safari : un défaut trouvé, deux angles morts | le paysage, et trois écrans jamais vus |
 | lui donner ses vraies valeurs | dix minutes, un soir |
 | connecter les dépenses à la banque | un vrai chantier, à trancher |
 | la sauvegarde qui ne demande rien | après le téléphone |
@@ -34,17 +34,29 @@ redirige pas les anciennes adresses de Pages. C'est ce qui est arrivé au dépô
 **Pour mettre à jour l'app ensuite** : `bash verifier.sh`, puis commit et push.
 Pages resert `docs/` tout seul.
 
-## Safari n'est testé nulle part
+## Safari : un défaut trouvé, deux angles morts qui restent
 
-Les écrans n'ont été regardés que dans le navigateur de Claude (Chromium). Or
-les deux pires défauts visuels de l'autre projet du même auteur **ne se
-reproduisaient pas dans Chromium** : l'en-tête invisible quand la barre
-d'adresse de Safari est en haut, et une hauteur qui se résout autrement.
+**Le premier test a eu lieu le 18/09/2026**, par Samer sur son iPhone, et il a
+rapporté tout de suite : la ligne de date passait sous la barre d'état.
+Corrigé le soir même (`JOURNAL.md`, entrée de 22 h 54), et protégé par trois
+tests.
 
-Deux parades sont déjà posées à l'aveugle dans `style.css` (`dvh` au lieu de
-`vh`, et `env(safe-area-inset-bottom)` sous la barre d'onglets) — **mais
-personne ne les a vues marcher.** À vérifier sur le vrai téléphone, le jour du
-point ci-dessus.
+**Ce qui est maintenant VU marcher** : la marge du bas — la barre d'onglets se
+tient au-dessus de la barre de gestes, sur sa capture. Et la marge du haut,
+après correction.
+
+**Ce qui reste à l'aveugle :**
+
+- **le mode paysage** — les marges gauche et droite ont été posées dans le même
+  mouvement, sans que personne ne les voie servir ;
+- **les trois autres écrans** (Le cumul, L'argent, Réglages) n'ont jamais été
+  regardés sur l'iPhone. Ils partagent le même `#ecran`, donc la correction les
+  couvre — mais « donc » n'est pas « vu ».
+
+**Et la leçon de fond reste entière** : `env(safe-area-inset-top)` vaut zéro sur
+un navigateur de bureau. Aucun contrôle lancé depuis le Mac ne peut voir ce
+défaut-là. C'est le même trou que chez Petit Gâteau, où les deux pires défauts
+visuels ne se reproduisaient pas dans Chromium.
 
 ## Lui donner ses vraies valeurs
 

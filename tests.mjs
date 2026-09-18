@@ -303,3 +303,47 @@ test('ce qui est écrit se relit à l’identique', () => {
   assert.equal(ecrire(c, stockage), true);
   assert.deepEqual(lire(stockage).jours['2026-09-18'].tenu, { bouger: true });
 });
+
+// ---------------------------------------------------------------------------
+// Les marges de sécurité de l'iPhone
+// ---------------------------------------------------------------------------
+// Ces tests lisent la feuille de style à sa source. Ils ne remplacent pas un
+// vrai iPhone — ils empêchent la RÉGRESSION d'un défaut déjà payé.
+//
+// Le défaut, vu par Samer le 18/09/2026 sur son téléphone : la date du jour
+// était invisible, cachée sous la barre d'état. Cause : `viewport-fit=cover`
+// dans la page fait passer le contenu SOUS la barre d'état et sous l'encoche,
+// et la marge du haut n'avait pas été réservée — seule celle du bas l'était.
+//
+// Aucun navigateur de bureau ne peut le reproduire : `env(safe-area-inset-top)`
+// y vaut zéro. C'est pourquoi les quatre écrans étaient « vérifiés » et le
+// défaut présent quand même.
+
+test("la page réserve les marges de sécurité EN HAUT comme en bas", async () => {
+  const { readFile } = await import('node:fs/promises');
+  const css = await readFile(new URL('./1-SOURCE/style.css', import.meta.url), 'utf8');
+  const bloc = css.match(/#ecran\s*\{[^}]*\}/)?.[0];
+  assert.ok(bloc, '#ecran introuvable dans la feuille de style');
+  assert.match(bloc, /env\(safe-area-inset-top\)/,
+    "le haut de #ecran ne réserve pas env(safe-area-inset-top) : la date passera sous la barre d'état");
+  assert.match(bloc, /env\(safe-area-inset-bottom\)/,
+    'le bas de #ecran ne réserve pas la place de la barre des onglets');
+});
+
+test("la barre des onglets reste au-dessus de la barre de gestes", async () => {
+  const { readFile } = await import('node:fs/promises');
+  const css = await readFile(new URL('./1-SOURCE/style.css', import.meta.url), 'utf8');
+  const bloc = css.match(/\.onglets\s*\{[^}]*\}/)?.[0];
+  assert.ok(bloc, '.onglets introuvable dans la feuille de style');
+  assert.match(bloc, /env\(safe-area-inset-bottom\)/);
+});
+
+test("viewport-fit=cover et les marges vont TOUJOURS ensemble", async () => {
+  // L'un sans l'autre est le défaut. Si un jour viewport-fit disparaît de la
+  // page, ce test le dit — parce qu'alors les marges deviennent inutiles, et
+  // qu'on doit le décider, pas le subir.
+  const { readFile } = await import('node:fs/promises');
+  const page = await readFile(new URL('./construire.mjs', import.meta.url), 'utf8');
+  assert.match(page, /viewport-fit=cover/,
+    'viewport-fit=cover a disparu de la page : les env(safe-area-*) ne servent plus à rien');
+});
