@@ -6,35 +6,33 @@ point, et le renvoi devient faux en silence.
 
 | Le point | Ce qui l'attend |
 |---|---|
-| la mettre sur le téléphone | **une décision de Samer** : comment l'héberger |
+| finir la mise sur le téléphone | **deux gestes de Samer** : activer Pages, ajouter l'icône |
 | Safari n'est testé nulle part | le même trou que chez Petit Gâteau |
 | lui donner ses vraies valeurs | dix minutes, un soir |
-| un dépôt git, ou pas | une décision de Samer |
 | connecter les dépenses à la banque | un vrai chantier, à trancher |
 | la sauvegarde qui ne demande rien | après le téléphone |
 
 ---
 
-## La mettre sur le téléphone — et il y a un choix à faire
+## Finir la mise sur le téléphone
 
-Aujourd'hui l'app ne tourne que sur le Mac, par `node servir.mjs`. Pour qu'elle
-soit sur l'iPhone, en icône, il faut qu'elle soit servie par une adresse que le
-téléphone atteint. Trois voies, et elles ne se valent pas :
+**L'hébergement est fait** (18/09/2026) : dépôt public `istiqama-site`, servi
+par GitHub Pages depuis `/docs`. Restent deux gestes que Claude ne peut pas
+faire :
 
-- **GitHub Pages, dépôt public.** Le plus simple, et c'est déjà ce que fait
-  l'app de Petit Gâteau. **Le code serait public ; les données, jamais** —
-  elles ne quittent pas le téléphone. Reste que la page elle-même serait
-  ouverte à qui connaît l'adresse.
-- **GitHub Pages, dépôt privé.** Demande un compte GitHub payant.
-- **Rien du tout : le fichier posé dans iCloud Drive.** Zéro hébergement, mais
-  Safari ouvre alors un fichier local, et le stockage local y est fragile —
-  c'est exactement la panne silencieuse `file://` de la méthode. **Déconseillé.**
+1. **Activer Pages** — dépôt `istiqama-site` → *Settings* → *Pages* → source
+   *Deploy from a branch*, branche `main`, dossier `/docs`.
+2. **Ajouter l'icône** — ouvrir
+   `https://samermohamedpro-dotcom.github.io/istiqama-site/` sur l'iPhone,
+   *Partager* → *Sur l'écran d'accueil*.
 
-*Et une remarque qui vient de la règle « rien de difficile à changer ne doit
-devenir porteur » : le jour où l'icône est sur l'écran d'accueil, l'adresse
-devient porteuse. Si c'est GitHub Pages, le nom du dépôt EST l'adresse, et on ne
-peut plus le renommer sans casser l'icône. C'est exactement ce qui est arrivé au
-dépôt `APP` de Petit Gâteau.*
+**Et à partir de ce moment-là, le nom du dépôt ne peut plus changer** : aucun
+domaine ne couvre cette adresse, donc le nom EST l'adresse, et GitHub ne
+redirige pas les anciennes adresses de Pages. C'est ce qui est arrivé au dépôt
+`APP` de Petit Gâteau.
+
+**Pour mettre à jour l'app ensuite** : `bash verifier.sh`, puis commit et push.
+Pages resert `docs/` tout seul.
 
 ## Safari n'est testé nulle part
 
@@ -61,13 +59,6 @@ L'app démarre avec des valeurs de départ, pas avec les siennes :
 - **la phrase d'identité**, en haut de l'écran.
 
 Tout se change dans Réglages, sans toucher au code.
-
-## Un dépôt git, ou pas
-
-Le projet n'en a pas encore, et c'est volontaire : **jamais de dépôt sans le
-demander**. Ce qu'il apporterait : l'historique du code, et une copie ailleurs
-que sur ce Mac. Ce qu'il ne doit jamais contenir : une seule donnée réelle — le
-`.gitignore` est déjà écrit pour ça, avant le premier commit.
 
 ## Connecter les dépenses à la banque
 

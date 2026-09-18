@@ -28,6 +28,8 @@
 
 ## Ce qui n'existe pas encore
 
-Tout est dans `A-FAIRE.md`, en ordre. Les trois premiers :
-la mettre sur le téléphone, mesurer les écrans dans Safari (et pas seulement
-Chromium), et décider si un dépôt git est utile.
+Tout est dans `A-FAIRE.md`, en ordre. Les trois premiers : finir la mise sur le
+téléphone (activer Pages, ajouter l'icône), mesurer les écrans dans **Safari**
+et pas seulement dans Chromium, et lui donner ses vraies valeurs.
+
+Les points déjà réglés, en entier : `archives/A-FAIRE-ISTIQAMA-fait-2026-09.md`.

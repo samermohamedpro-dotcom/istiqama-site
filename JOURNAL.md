@@ -4,11 +4,93 @@ Le plus récent en haut. La forme d'une entrée (en-tête, statut, les quatre
 rubriques, « vu passer ») est celle de la compétence `facon-de-travailler` :
 elle n'est pas redite ici.
 
-**Index des corrections** — aucune à ce jour. Une entrée devenue fausse se
-corrige par une **nouvelle** entrée, jamais en modifiant l'ancienne, et se
-signale ici.
+**Index des corrections.** Une entrée devenue fausse se corrige par une
+**nouvelle** entrée, jamais en modifiant l'ancienne, et se signale ici.
+
+- **18/09/2026, 20 h 33** — « Aucun dépôt git n'a été créé », et les points
+  ouverts « comment mettre l'app sur le téléphone » et « un dépôt git, ou
+  pas ». **Réglés le même soir** par l'entrée de 22 h 23 : le dépôt
+  `istiqama-site` existe, il est public, et l'app est servie par GitHub Pages.
 
 ---
+
+# 18/09/2026, 22 h 23 — Istiqama est en ligne : un seul dépôt public, et son nom est désormais son adresse
+
+Touche : Istiqama · `depots-github.md` (la liste des dépôts de Samer)
+
+Statut : **tranché par Samer** — emplacement, nombre de dépôts, nom
+
+## Ce qui a été décidé
+
+- **L'app est hébergée par GitHub Pages**, dépôt `istiqama-site`, servi depuis
+  `/docs` sur `main`.
+- **Un seul dépôt, public, qui porte tout** : la source, les documents, le
+  journal, et ce qui est servi. Samer a écarté la convention `-source` privé /
+  `-site` public qu'il applique à ses trois autres activités.
+- **Il s'appelle `istiqama-site`** et non `istiqama`, pour rester dans la
+  convention `activité-rôle`.
+- **Le dossier construit passe de `2-CONSTRUIT/` à `docs/`**, et il n'est plus
+  ignoré par git : c'est GitHub Pages qui le sert.
+
+## Pourquoi
+
+- **Un seul dépôt, choisi en connaissance de cause.** La conséquence lui a été
+  dite avant : son journal, son A-FAIRE et son README deviennent publics, donc
+  la raison pour laquelle Istiqama vit hors de 89G — une future holding, un
+  comptable, un associé possible — est lisible par tous. Il a tranché pour la
+  simplicité : une seule commande à tenir. **Aucune donnée de l'app n'y entre**,
+  et c'est ce qui rend le choix tenable.
+- **`istiqama-site` plutôt qu'`istiqama`.** Aucun domaine ne couvre cette
+  adresse, donc **le nom du dépôt EST l'adresse**, et GitHub ne redirige pas les
+  anciennes adresses de Pages : le jour où l'icône est sur l'écran d'accueil, ce
+  nom ne peut plus changer. C'est exactement ce qui est arrivé au dépôt `APP` de
+  Petit Gâteau. Le choix a donc été fait en sachant qu'il est définitif.
+- **`docs/` plutôt que `2-CONSTRUIT/`.** GitHub Pages sait servir `/docs` sur
+  `main` sans aucune mécanique de déploiement — pas d'action à configurer, pas
+  de branche à tenir. Le renommage a été fait ce soir parce qu'il ne coûtait
+  encore rien : c'est la règle « rien de difficile à changer ne doit devenir
+  porteur », appliquée avant qu'il ne soit trop tard.
+
+## Ce que ça change
+
+- **`depots-github.md` passe de sept à huit dépôts, et de trois activités à
+  quatre.** Istiqama y est nommée comme une activité à part, hors 89G, avec la
+  mention explicite qu'elle est le seul dépôt à porter sa source et son site
+  ensemble.
+- **`89G/0-COMPETENCES/` est un miroir de `~/.claude/skills`, refait par
+  `sauvegarder.sh`.** Ce miroir est donc en retard d'une modification depuis ce
+  soir. Rien n'a été lancé : `sauvegarder.sh` dépose sur les dépôts du groupe,
+  et ça ne se fait pas sans demander.
+- **89G n'est toujours touché en rien d'autre.** Istiqama ne lit aucun de ses
+  fichiers, et aucun des siens ne pointe vers elle.
+
+## Ce qui reste ouvert
+
+- **Safari n'a toujours pas été essayé.** Les deux parades posées à l'aveugle
+  (`dvh`, `env(safe-area-inset-bottom)`) n'ont été vues marcher nulle part. Le
+  premier vrai test est celui de Samer, sur son iPhone.
+- **Ses vraies valeurs** ne sont pas saisies : la règle « manger propre », le
+  montant visé, ses placements, sa phrase d'identité.
+- **Les points de `A-FAIRE.md` qui restent** : la connexion bancaire (non
+  construite exprès) et la sauvegarde qui ne demande rien.
+
+## Vu passer
+
+- `bash verifier.sh` avant le commit → **28 tests verts**, construction faite,
+  tous les fichiers de `1-SOURCE/` copiés, aucune sauvegarde personnelle qui
+  traîne.
+- **L'app servie sous un sous-chemin** (`/istiqama-site/` simulé en local), pas
+  seulement à la racine : feuille de style appliquée (fond `rgb(16, 14, 11)`),
+  quatre onglets, six cartes, **zéro erreur en console**. C'est le piège des
+  chemins absolus, vérifié plutôt que supposé.
+- `git push` → commit `9bec1d6`, et **vérifié sur le distant** : `git ls-remote`
+  et `git ls-tree` montrent le même commit que le local et les dix fichiers de
+  `docs/`. Pas une date de dossier — le contenu réellement présent.
+- **Un script qui n'a rien fait, en silence, attrapé au passage** : le
+  remplacement dans `.gitignore` cherchait `docs/` alors que le fichier
+  contenait encore `2-CONSTRUIT/`. Il s'est exécuté sans erreur et sans effet.
+  Refait avec une assertion qui échoue si le motif ne correspond pas — c'est
+  désormais la forme utilisée pour tout remplacement de ce genre.
 
 # 18/09/2026, 20 h 33 — Istiqama existe : une app personnelle, hors de 89G, qui ne parle à personne
 

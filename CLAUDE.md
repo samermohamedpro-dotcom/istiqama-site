@@ -69,7 +69,19 @@ node --test tests.mjs     # le calcul, 28 tests. Rien ne se livre sans les avoir
 node construire.mjs       # refait docs/ (effacé puis reconstruit à chaque fois)
 node servir.mjs           # puis http://localhost:8123
 bash verifier.sh          # les deux premiers, plus le contrôle que le construit n'est pas en retard
+
+# mettre à jour ce qui est en ligne — dans cet ordre, le dépôt refuse le non commité
+bash verifier.sh          # rien ne part sans avoir VU les tests passer
+git add -A && git commit  # jamais sans le demander à Samer
+git push                  # GitHub Pages resert docs/ tout seul, en deux à trois minutes
 ```
+
+**Un seul dépôt, et il est PUBLIC** : `istiqama-site`
+(`samermohamedpro-dotcom.github.io/istiqama-site/`). Il porte la source, les
+documents et le journal. Les données de l'app n'y entrent jamais — elles ne
+quittent pas le téléphone, et le `.gitignore` refuse tout `istiqama-*.json`.
+La liste des huit dépôts de Samer vit dans `depots-github.md`, à côté de la
+compétence `facon-de-travailler` — **une seule fois**, et c'est là-bas.
 
 **`docs/` est effacé à chaque construction.** Tout ce qui doit y
 survivre est *produit* par `construire.mjs` — l'icône, le manifeste, la page.
