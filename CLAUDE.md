@@ -64,6 +64,7 @@ Le pourquoi de chacun, avec les mesures et les sources, est dans `README.md`,
 | **pourquoi l'app est faite ainsi, et ce qu'elle refuse de faire** | `README.md` |
 | où est chaque fichier, et dans quel état | `LISEZ-MOI-DABORD.md` |
 | ce qui a été décidé, daté | `JOURNAL.md` |
+| **les rappels : le dhikr, l'eau, les raccourcis à créer** | `RAPPELS.md` |
 | ce qui reste à faire, en ordre | `A-FAIRE.md` |
 
 ---

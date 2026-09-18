@@ -11,6 +11,7 @@ point, et le renvoi devient faux en silence.
 | lui donner ses vraies valeurs | dix minutes, un soir |
 | connecter les dépenses à la banque | un vrai chantier, à trancher |
 | la sauvegarde qui ne demande rien | après le téléphone |
+| réordonner les habitudes, ajouter un domaine | pas demandé — le jour où ça gêne |
 
 ---
 
@@ -123,3 +124,17 @@ naturelle, une fois l'app sur le téléphone : qu'elle propose d'elle-même
 d'enregistrer dans iCloud Drive quand la dernière date de plus de deux
 semaines. L'écran le signale déjà en rouge tant que rien n'a jamais été
 sauvegardé.
+
+
+## Réordonner les habitudes, ajouter un domaine
+
+**Ni l'un ni l'autre n'est construit, et ni l'un ni l'autre n'a été demandé.**
+Écrits ici pour qu'on sache que c'est un choix et pas un oubli.
+
+- **L'ordre** des habitudes est celui d'ajout. Les déplacer demanderait une
+  poignée à glisser, ce qui est le geste le plus délicat à faire correctement au
+  doigt. À faire le jour où l'ordre gêne vraiment.
+- **Les domaines** sont figés à trois : le corps, la religion, la tête. En
+  ajouter un demande une couleur, une place dans l'ordre et une entrée dans
+  `DOMAINES` (`1-SOURCE/depart.js`). Rien d'insurmontable — mais tant que les
+  trois suffisent, un quatrième n'ajouterait qu'un réglage de plus à traverser.

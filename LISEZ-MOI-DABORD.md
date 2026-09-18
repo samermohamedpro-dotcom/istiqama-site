@@ -8,6 +8,7 @@
 |---|---|---|
 | `1-SOURCE/logique.js` | **tout le calcul** : chaînes, cumul, part tenue, projection d'argent. Aucun accès à l'écran ni au stockage — c'est ce qui le rend testable en entier | fait, 28 tests |
 | `1-SOURCE/donnees.js` | lire, écrire, sauvegarder, restaurer. Rien d'autre ne touche au stockage | fait |
+| `1-SOURCE/adhkar.js` | **les 14 adhkâr, et leur seul endroit.** `RAPPELS.md` en est une seconde copie, et un test COMPARE les deux | fait |
 | `1-SOURCE/depart.js` | ce que contient l'app le premier jour : les habitudes, les domaines, l'objectif vide | fait |
 | `1-SOURCE/app.js` | l'écran, et rien que l'écran. **Aucune règle de calcul ne doit apparaître ici** | fait |
 | `1-SOURCE/style.css` | l'apparence. Aucune police chargée | fait |
@@ -39,6 +40,10 @@ Les points déjà réglés, en entier : `archives/A-FAIRE-ISTIQAMA-fait-2026-09.
 ---
 
 ## Le rappel du jour — ce qui marche, et pourquoi ce n'est pas ce qu'on croit
+
+**Le dhikr toutes les heures et l'eau à huit heures fixes ont leur propre
+document : `RAPPELS.md`.** Les 14 adhkâr, les deux raccourcis à créer, et les
+23 automatisations avec leurs heures. **On ne le redit pas ici.**
 
 **Ce qu'une app web NE PEUT PAS faire sur iPhone : se réveiller toute seule.**
 Il n'existe aucun moyen de programmer une notification locale depuis une page

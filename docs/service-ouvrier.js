@@ -1,6 +1,6 @@
 // Produit par construire.mjs — ne pas modifier à la main, il est réécrit.
-const CACHE = 'istiqama-202609182326';
-const FICHIERS = ['./', 'index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js',
+const CACHE = 'istiqama-202609190007';
+const FICHIERS = ['./', 'index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js', 'adhkar.js',
   'style.css', 'icone-180.png', 'icone-512.png', 'manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {

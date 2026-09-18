@@ -5,12 +5,18 @@
 import * as L from './logique.js';
 import * as D from './donnees.js';
 import { DOMAINES } from './depart.js';
+import { ADHKAR, texteACollerDansRaccourcis } from './adhkar.js';
 
 let classeur = D.lire();
 let onglet = 'aujourdhui';
 let fenetre = 30;
 let toutVoir = false;
 let bilanOuvert = false;
+// Le formulaire d'ajout d'habitude, tant qu'il n'est pas validé. Hors du
+// classeur exprès : une habitude à moitié tapée n'a rien à faire dans les
+// données enregistrées.
+let nouvelleHabitude = null;
+let voirAdhkar = false;
 
 const ecran = document.getElementById('ecran');
 const piedOnglets = document.getElementById('onglets');
@@ -625,12 +631,36 @@ function vueReglages() {
           <button class="bouton or" data-action="autoriser-rappels">Autoriser les notifications</button>
         </div>`}
       <div class="note-bas" style="margin-top:12px">
-        <b>Ce qu'une app web NE PEUT PAS faire sur iPhone</b> : se réveiller toute seule à 7 h.
-        Il faudrait un serveur qui envoie la notification — donc tes données quitteraient le téléphone.
+        <b>Ce qu'une app web NE PEUT PAS faire sur iPhone</b> : se réveiller toute seule.
+        Il faudrait un serveur qui envoie la notification. Et <b>iOS n'a aucun déclencheur
+        « toutes les 20 minutes »</b> : les automatisations ne partent qu'à des heures fixes.
         <br><br>
-        <b>Ce qui marche, et qui prend deux minutes</b> : une automatisation de l'app <i>Raccourcis</i>.
-        Elle ouvre Istiqama à l'heure que tu veux, et l'app te dit alors ce qu'il te reste.
-        Le mode d'emploi exact est dans <i>LISEZ-MOI-DABORD.md</i>, § « Le rappel du jour ».
+        <b>Ce qui marche</b> : l'app <i>Raccourcis</i>, une automatisation par heure.
+        Le mode d'emploi complet est dans <i>RAPPELS.md</i>.
+      </div>
+    </div>
+
+    <div class="carte">
+      <h2>Le dhikr — ${ADHKAR.length} adhkâr en rotation</h2>
+      <div class="note-bas" style="margin:0 0 12px">
+        Colle cette liste dans l'action <b>Texte</b> du raccourci « Dhikr » : il en tire un au hasard
+        et l'affiche. Une ligne par dhikr, rien d'autre — chaque caractère en trop se retrouverait
+        dans la notification.
+      </div>
+      <div class="boutons">
+        <button class="bouton or" data-action="copier-adhkar">Copier les ${ADHKAR.length} adhkâr</button>
+        <button class="bouton" data-action="voir-adhkar">${voirAdhkar ? 'Masquer' : 'Les voir avec leurs sources'}</button>
+      </div>
+
+      <label class="champ" style="margin-top:14px;margin-bottom:0">
+        <span>Le texte à coller — si le bouton ne donne rien, appui long ici → Tout sélectionner → Copier</span>
+        <textarea id="texte-a-coller" readonly rows="6" style="font-size:14px">${txt(texteACollerDansRaccourcis())}</textarea>
+      </label>
+      ${voirAdhkar ? listeAdhkar() : ''}
+      <div class="note-bas" style="margin-top:12px">
+        <b>Ce qui est garanti, et ce qui ne l'est pas.</b> Deux ont été vérifiés directement à la
+        source ; les autres viennent de recueils très connus, sans vérification une par une. Un a
+        une authenticité discutée, et il est marqué. <b>Contrôle-les avec ta propre référence.</b>
       </div>
     </div>
 
@@ -641,7 +671,10 @@ function vueReglages() {
       <div class="placement">
         <div class="titre">
           <span class="nom">${txt(h.libelle)} <span class="detail" style="color:var(--texte-faible)">· ${txt(DOMAINES[h.domaine]?.libelle || h.domaine)}</span></span>
-          <button class="bouton ${h.actif === false ? '' : 'or'}" data-action="basculer-habitude" data-index="${i}">${h.actif === false ? 'éteinte' : 'active'}</button>
+          <span class="boutons" style="flex:none">
+            <button class="bouton ${h.actif === false ? '' : 'or'}" data-action="basculer-habitude" data-index="${i}">${h.actif === false ? 'éteinte' : 'active'}</button>
+            <button class="bouton danger" data-action="supprimer-habitude" data-index="${i}" aria-label="Supprimer ${txt(h.libelle)}">✕</button>
+          </span>
         </div>
         ${h.type === 'compteur'
       ? `<div class="trio" style="grid-template-columns:1fr 1fr"><label class="champ" style="margin:0"><span>objectif</span>
@@ -653,8 +686,11 @@ function vueReglages() {
              <input type="text" data-habitude="${i}" data-champ="detail" value="${txt(h.detail || '')}" placeholder="ex. pas de sucre ajouté" /></label>`}
       </div>`;
   });
-  html += `<div class="note-bas">Une habitude éteinte garde son histoire : elle sort des comptes, elle ne s'efface pas.
-  Et peu d'habitudes tenues battent toujours beaucoup d'habitudes abandonnées — plus de la moitié des gens
+  html += formulaireHabitude();
+  html += `<div class="note-bas"><b>Éteindre</b> garde l'histoire : l'habitude sort des comptes mais reste dans la liste.
+  <b>Supprimer</b> (✕) la retire de la liste — et ne touche à aucune journée passée : si tu la recrées du même nom,
+  son passé revient.
+  <br><br>Et peu d'habitudes tenues battent toujours beaucoup d'habitudes abandonnées — plus de la moitié des gens
   arrêtent une app de suivi dans les trente jours, presque toujours pour en avoir mis trop.</div></div>`;
 
   html += `
@@ -699,6 +735,53 @@ function vueReglages() {
       </div>
     </div>`;
   return html;
+}
+
+// Le formulaire d'ajout. Fermé par défaut : une app qu'on ouvre chaque jour ne
+// doit pas montrer en permanence de quoi la reconfigurer.
+function formulaireHabitude() {
+  if (!nouvelleHabitude) {
+    return `<div class="boutons" style="margin-top:14px">
+      <button class="bouton or" data-action="ouvrir-formulaire">+ Une habitude</button>
+    </div>`;
+  }
+  const n = nouvelleHabitude;
+  return `
+    <div class="placement" style="border-top-color:var(--or-sombre)">
+      <label class="champ"><span>Le nom</span>
+        <input type="text" id="nh-libelle" value="${txt(n.libelle)}" placeholder="ex. Méditer, Marcher, Coran" /></label>
+      <div class="trio" style="grid-template-columns:1fr 1fr">
+        <label class="champ" style="margin:0"><span>Domaine</span>
+          <select id="nh-domaine">${Object.entries(DOMAINES).map(([id, d]) =>
+    `<option value="${id}" ${n.domaine === id ? 'selected' : ''}>${txt(d.libelle)}</option>`).join('')}</select></label>
+        <label class="champ" style="margin:0"><span>Comment ça se coche</span>
+          <select id="nh-type">${L.TYPES_HABITUDE.map((t) =>
+    `<option value="${t.type}" ${n.type === t.type ? 'selected' : ''}>${txt(t.libelle)}</option>`).join('')}</select></label>
+      </div>
+      ${n.type === 'compteur'
+    ? `<div class="trio" style="grid-template-columns:1fr 1fr;margin-top:12px">
+           <label class="champ" style="margin:0"><span>objectif</span>
+             <input type="number" inputmode="numeric" id="nh-objectif" value="${n.objectif}" /></label>
+           <label class="champ" style="margin:0"><span>unité</span>
+             <input type="text" id="nh-unite" value="${txt(n.unite)}" placeholder="verres, pages…" /></label>
+         </div>`
+    : `<label class="champ" style="margin-top:12px;margin-bottom:0"><span>la règle, en clair (facultatif)</span>
+           <input type="text" id="nh-detail" value="${txt(n.detail)}" placeholder="ex. 10 pages" /></label>`}
+      <div class="boutons" style="margin-top:14px">
+        <button class="bouton or" data-action="valider-habitude">Ajouter</button>
+        <button class="bouton" data-action="annuler-habitude">Annuler</button>
+      </div>
+    </div>`;
+}
+
+function listeAdhkar() {
+  return `<div style="margin-top:14px">${ADHKAR.map((d, i) => `
+    <div class="placement">
+      <div class="libelle" style="font-size:15px">${i + 1}. ${txt(d.texte)}</div>
+      <div class="detail" style="margin-top:5px">${txt(d.source)}${
+  d.verifie ? ' · <b style="color:var(--tenu)">vérifié à la source</b>' : ''}${
+  d.discute ? ' · <b style="color:var(--danger)">authenticité discutée</b>' : ''}</div>
+    </div>`).join('')}</div>`;
 }
 
 function etatRappel(permission) {
@@ -773,6 +856,16 @@ function brancherChamps() {
     h[c.dataset.champ] = c.dataset.champ === 'objectif' ? Number(c.value) : c.value;
   });
 
+  // Le type change la forme du formulaire, donc lui SEUL redessine.
+  const type = document.getElementById('nh-type');
+  if (type) type.addEventListener('change', () => { nouvelleHabitude.type = type.value; rendre(); });
+  surSaisie('#nh-libelle', (c) => { nouvelleHabitude.libelle = c.value; });
+  surSaisie('#nh-detail', (c) => { nouvelleHabitude.detail = c.value; });
+  surSaisie('#nh-objectif', (c) => { nouvelleHabitude.objectif = c.value; });
+  surSaisie('#nh-unite', (c) => { nouvelleHabitude.unite = c.value; });
+  const domaine = document.getElementById('nh-domaine');
+  if (domaine) domaine.addEventListener('change', () => { nouvelleHabitude.domaine = domaine.value; });
+
   const fichier = document.getElementById('fichier-restauration');
   if (fichier) fichier.addEventListener('change', lireFichierRestauration);
 }
@@ -838,6 +931,12 @@ function agir(action, bouton) {
       // ouverture — et une proposition qu'on ne peut pas écarter est un harcèlement.
       classeur.gelRefuse = L.cleDecalee(aujourdhui(), -1);
       return true;
+    case 'voir-adhkar':
+      voirAdhkar = !voirAdhkar;
+      return true;
+    case 'copier-adhkar':
+      copierDansLePressePapier(texteACollerDansRaccourcis(), bouton, `${ADHKAR.length} adhkâr — colle pour vérifier`);
+      return false;
     case 'autoriser-rappels':
       demanderRappels();
       return false;
@@ -849,6 +948,29 @@ function agir(action, bouton) {
       const nom = classeur.argent.placements[i]?.nom || 'ce placement';
       if (!confirm(`Retirer ${nom} ?`)) return false;
       classeur.argent.placements.splice(i, 1);
+      return true;
+    }
+    case 'ouvrir-formulaire':
+      nouvelleHabitude = { libelle: '', domaine: 'corps', type: 'oui-non', detail: '', objectif: 1, unite: '' };
+      return true;
+    case 'annuler-habitude':
+      nouvelleHabitude = null;
+      return true;
+    case 'valider-habitude':
+      try {
+        classeur.reglages.habitudes = L.ajouterHabitude(classeur.reglages.habitudes, nouvelleHabitude);
+        nouvelleHabitude = null;
+        vibrer(2);
+      } catch (err) {
+        alert(err.message);
+        return false;
+      }
+      return true;
+    case 'supprimer-habitude': {
+      const h = classeur.reglages.habitudes[Number(bouton.dataset.index)];
+      if (!h) return false;
+      if (!confirm(`Supprimer « ${h.libelle} » ?\n\nElle sort de la liste. Tes journées passées ne sont pas touchées — si tu la recrées du même nom, son historique revient.\n\nPour la mettre de côté sans la retirer, utilise « éteinte ».`)) return false;
+      classeur.reglages.habitudes = L.supprimerHabitude(classeur.reglages.habitudes, h.id);
       return true;
     }
     case 'basculer-habitude': {
@@ -919,6 +1041,33 @@ async function direCeQuiReste() {
 // service ouvrier ne s'enregistre pas dans tous les navigateurs, et un service
 // ouvrier coincé sert une vieille version POUR TOUJOURS, sans une erreur nulle
 // part. C'est la panne silencieuse la plus chère de ce genre de fichier.
+// ATTENTION — ce que ce bouton NE PEUT PAS garantir.
+//
+// `navigator.clipboard.writeText()` peut se résoudre SANS avoir rien écrit :
+// vu le 18/09/2026 dans un navigateur où l'appel réussissait et où le
+// collage ne rendait rien. Un « ✓ copié » serait donc un mensonge poli, et
+// c'est exactement le genre d'affirmation qu'on refuse ici.
+//
+// D'où deux choses : le message dit « colle pour vérifier » au lieu d'affirmer,
+// et la zone de texte au-dessus reste toujours là — appui long, Tout
+// sélectionner, Copier. Ce chemin-là marche partout, et il ne ment pas.
+async function copierDansLePressePapier(texte, bouton, message) {
+  const dire = (m) => { if (bouton) { const avant = bouton.textContent; bouton.textContent = m; setTimeout(() => { bouton.textContent = avant; }, 1800); } };
+  try {
+    await navigator.clipboard.writeText(texte);
+    dire(`✓ ${message}`);
+  } catch {
+    const zone = document.createElement('textarea');
+    zone.value = texte;
+    zone.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(zone);
+    zone.select();
+    const ok = document.execCommand?.('copy');
+    zone.remove();
+    dire(ok ? `✓ ${message}` : '✗ copie refusée');
+  }
+}
+
 async function viderLeCache() {
   try {
     for (const r of await navigator.serviceWorker?.getRegistrations?.() || []) await r.unregister();

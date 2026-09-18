@@ -31,7 +31,7 @@ const VERSION = `${maintenant.getFullYear()}-${String(maintenant.getMonth() + 1)
 rmSync(SORTIE, { recursive: true, force: true });
 mkdirSync(SORTIE, { recursive: true });
 
-for (const f of ['logique.js', 'donnees.js', 'depart.js', 'app.js', 'style.css']) {
+for (const f of ['logique.js', 'donnees.js', 'depart.js', 'adhkar.js', 'app.js', 'style.css']) {
   copyFileSync(join(SOURCE, f), join(SORTIE, f));
 }
 
@@ -137,7 +137,7 @@ writeFileSync(join(SORTIE, 'manifest.webmanifest'), JSON.stringify({
 //      qu'en cas d'échec. Une page servie depuis le cache gèlerait tout le reste.
 writeFileSync(join(SORTIE, 'service-ouvrier.js'), `// Produit par construire.mjs — ne pas modifier à la main, il est réécrit.
 const CACHE = 'istiqama-${VERSION.replace(/[^0-9]/g, '')}';
-const FICHIERS = ['./', 'index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js',
+const FICHIERS = ['./', 'index.html', 'app.js', 'logique.js', 'donnees.js', 'depart.js', 'adhkar.js',
   'style.css', 'icone-180.png', 'icone-512.png', 'manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {

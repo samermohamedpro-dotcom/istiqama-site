@@ -540,3 +540,66 @@ export function bilanDuJour(jours, reglages, cle, gelsUtilises = []) {
     paliersFranchis: paliers,
   };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Ajouter et retirer une habitude — 18/09/2026
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Manquait depuis le premier jour : on ne pouvait qu'ÉTEINDRE une habitude.
+// Trouvé par Samer en s'en servant — « je peux ni ajouter ni supprimer ».
+
+// Un identifiant se fabrique à partir du libellé, sans accent ni espace, parce
+// qu'il devient une CLÉ dans chaque journée enregistrée. Il ne doit donc plus
+// jamais changer, même si le libellé change : c'est la règle « rien de
+// difficile à changer ne doit devenir porteur », appliquée ici.
+export function identifiantDepuis(libelle, habitudes = []) {
+  const base = String(libelle)
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // enlève les accents
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 24) || 'habitude';
+  const pris = new Set(habitudes.map((h) => h.id));
+  if (!pris.has(base)) return base;
+  let n = 2;
+  while (pris.has(`${base}_${n}`)) n++;
+  return `${base}_${n}`;
+}
+
+export const TYPES_HABITUDE = [
+  { type: 'oui-non', libelle: 'Fait ou pas fait' },
+  { type: 'compteur', libelle: 'Un nombre à atteindre' },
+  { type: 'priere', libelle: 'À l’heure ou rattrapée' },
+];
+
+// Renvoie une NOUVELLE liste : rien n'est modifié sur place, pour que la
+// fonction soit éprouvable sans rien casser autour.
+export function ajouterHabitude(habitudes, demande) {
+  const libelle = String(demande.libelle || '').trim();
+  if (!libelle) throw new Error('Une habitude a besoin d’un nom.');
+  const type = TYPES_HABITUDE.some((t) => t.type === demande.type) ? demande.type : 'oui-non';
+  const neuve = {
+    id: identifiantDepuis(libelle, habitudes),
+    domaine: DOMAINES_CONNUS.includes(demande.domaine) ? demande.domaine : 'corps',
+    libelle,
+    type,
+    actif: true,
+  };
+  if (demande.detail) neuve.detail = String(demande.detail).trim();
+  if (type === 'compteur') {
+    neuve.objectif = Math.max(1, Number(demande.objectif) || 1);
+    neuve.unite = String(demande.unite || '').trim() || 'fois';
+  }
+  if (demande.moment === 'matin' || demande.moment === 'soir') neuve.moment = demande.moment;
+  return [...habitudes, neuve];
+}
+
+export const DOMAINES_CONNUS = ['corps', 'religion', 'tete'];
+
+// Supprimer RETIRE l'habitude de la liste, et ne touche à AUCUNE journée.
+// Deux raisons : les journées passées restent vraies telles qu'elles ont été
+// vécues, et si l'habitude est recréée avec le même nom, son historique
+// revient. C'est la différence avec « éteindre », qui la garde dans la liste.
+export function supprimerHabitude(habitudes, id) {
+  return habitudes.filter((h) => h.id !== id);
+}

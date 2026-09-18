@@ -18,6 +18,151 @@ elle n'est pas redite ici.
 
 ---
 
+# 19/09/2026, 00 h 07 — Le dhikr toutes les heures et l'eau huit fois : par Raccourcis, parce qu'iOS ne sait pas faire autrement
+
+Touche : Istiqama
+
+Statut : **tranché par Samer** — le rythme, le mécanisme, et l'écriture en
+franco-arabe
+
+## Ce qui a été décidé
+
+- **14 adhkâr**, en rotation, **en franco-arabe** — pas en écriture arabe
+  (Samer : « je les veux en franco-arabe pas l'arabe écriture »). Le n° 13, dont
+  l'authenticité est discutée, est **gardé** à sa demande, et marqué comme tel.
+- **Le dhikr part toutes les heures**, de 07:00 à 21:00, par 15 automatisations
+  Raccourcis qui lancent toutes le même raccourci : il tire un dhikr au hasard
+  et l'affiche.
+- **L'eau part huit fois** : 06:30 → 20:30 toutes les deux heures.
+- **Un document à eux, `RAPPELS.md`** : les 14, les deux raccourcis à créer, les
+  23 automatisations avec leurs heures.
+- **Dans l'app** : une carte qui donne le texte à coller, un bouton de copie, et
+  la liste avec ses sources.
+
+## Pourquoi
+
+**Samer voulait toutes les 20 minutes. Ce n'est pas possible, et c'est vérifié** :
+iOS n'a **aucun déclencheur d'intervalle** — les automatisations ne partent qu'à
+des heures fixes, une par heure. Et une app web ne peut pas programmer de
+notification locale. Toutes les 20 min de 7 h à 22 h ferait **45 automatisations
+à créer à la main**. Il a choisi l'heure, en connaissance de cause.
+
+**Pourquoi les adhkâr vivent dans `adhkar.js` et pas dans le document** :
+`RAPPELS.md` est une seconde copie, que Samer lira sur son téléphone en
+installant les raccourcis. Si les deux divergent, il collera autre chose que ce
+qu'il croit. **Un test compare les deux**, ligne par ligne.
+
+## Ce que ça change
+
+- **Le garde-fou de construction a servi pour de vrai** : `adhkar.js` a été créé
+  et `verifier.sh` a refusé, en nommant le fichier — « MANQUE : adhkar.js n'est
+  pas copié par construire.mjs ». C'est exactement ce pour quoi il avait été
+  écrit, et c'est la première fois qu'il attrape quelque chose en situation.
+- **Ce qui est garanti et ce qui ne l'est pas est écrit partout** : deux adhkâr
+  vérifiés à la source, les autres non, un discuté. Dans le document, dans le
+  code, et à l'écran.
+
+## Ce qui reste ouvert
+
+- **Samer doit contrôler la liste avec sa propre référence.** Je ne suis pas
+  savant, et c'est écrit à trois endroits.
+- **Le vendredi n'est pas traité à part.** Si les rappels doivent se taire ce
+  jour-là, ça se fait dans le raccourci.
+- **L'écriture franco-arabe est la forme des livres** (`ch` pour ش, `â/î/û`).
+  Si Samer préfère la forme « chat » avec les chiffres (3, 7, 9), c'est un seul
+  fichier à changer.
+
+## Vu passer
+
+- **61 tests, 61 verts.**
+- **Le pont entre les deux copies vu REFUSER trois divergences** : un mot changé
+  dans `RAPPELS.md`, un dhikr retiré de l'app, et de l'arabe remis dans un
+  texte — chaque fois sur le bon test, avec le n° fautif dans le message.
+- **Un défaut trouvé sur moi-même, et il est du pire genre** : le bouton de
+  copie annonçait « ✓ 14 adhkâr copiés » **sans rien copier**.
+  `navigator.clipboard.writeText()` se résolvait, et le collage ne rendait rien.
+  Trouvé en collant vraiment, après avoir vérifié que le presse-papier
+  fonctionnait par ailleurs (cmd+C puis cmd+V, aller-retour réussi) — sans quoi
+  j'aurais accusé l'outil au lieu du code.
+  **Ce qui a été fait** : le message n'affirme plus rien qu'il ne peut prouver
+  (« colle pour vérifier »), et une **zone de texte sélectionnable** est
+  toujours affichée — appui long, Tout sélectionner, Copier. Ce chemin-là marche
+  partout.
+- **Le contenu de la zone vérifié dans le navigateur** : 14 lignes, aucune vide,
+  aucun caractère arabe, aucun numéro ni source qui fuit.
+- **Zéro débordement** à 320 et 430 px sur les quatre onglets.
+
+# 18/09/2026, 23 h 53 — On peut enfin AJOUTER et SUPPRIMER une habitude : ça manquait depuis le premier jour
+
+Touche : Istiqama
+
+Statut : **manque signalé par Samer en s'en servant** (« je peux ni ajouter ni
+supprimer »), corrigé le soir même
+
+## Ce qui a été décidé
+
+- **Un formulaire d'ajout** dans *Réglages* : nom, domaine, façon de cocher
+  (fait/pas fait · un nombre à atteindre · à l'heure ou rattrapée), et selon le
+  cas un détail ou un objectif avec son unité. Fermé par défaut.
+- **Un bouton ✕ par habitude**, qui demande confirmation.
+- **Supprimer ne touche à AUCUNE journée passée.** Si l'habitude est recréée du
+  même nom, son historique revient.
+- **« Éteindre » et « Supprimer » sont deux gestes différents**, et la
+  différence est écrite à l'écran comme dans la confirmation.
+
+## Pourquoi
+
+**C'était un trou, pas un choix.** Les placements avaient « + » et « ✕ », les
+projets se modifient dans une zone de texte — les habitudes n'avaient qu'un
+interrupteur. Une app personnelle dont on ne peut pas changer ce qu'on suit est
+l'app de quelqu'un d'autre. Trouvé par l'usage, pas par un test : aucun test
+n'avait de raison de chercher un bouton qui n'a jamais existé.
+
+**L'identifiant se fabrique à partir du nom, sans accent ni espace, et ne change
+plus jamais** — parce qu'il devient une CLÉ dans chaque journée enregistrée.
+C'est la règle « rien de difficile à changer ne doit devenir porteur », à
+l'intérieur des données cette fois. Deux habitudes du même nom reçoivent des
+clés différentes : partager une clé ferait écraser l'historique de la première,
+en silence.
+
+**Supprimer ne nettoie pas les journées, et c'est voulu.** Les journées passées
+restent vraies telles qu'elles ont été vécues, et les clés orphelines ne coûtent
+rien. Le bénéfice est réel : recréer une habitude du même nom lui rend son
+passé.
+
+## Ce que ça change
+
+- **`logique.js`** gagne `identifiantDepuis`, `ajouterHabitude`,
+  `supprimerHabitude`, `TYPES_HABITUDE` et `DOMAINES_CONNUS` — toutes pures,
+  toutes testées.
+- **Les trois domaines restent figés** (le corps, la religion, la tête). En
+  ajouter un demanderait une couleur, une place dans l'ordre et une entrée dans
+  `DOMAINES` : à faire le jour où il en manque un, pas avant.
+
+## Ce qui reste ouvert
+
+- **Réordonner les habitudes** — pas demandé, pas construit.
+- **Ajouter un domaine** — voir ci-dessus.
+- **Le retour haptique**, **le mode paysage**, **les trois autres écrans sur
+  l'iPhone** : toujours pas vus.
+
+## Vu passer
+
+- **56 tests, 56 verts** (7 de plus).
+- **Quatre protections cassées volontairement et vues rouges** sur le bon test :
+  deux habitudes du même nom partageant une clé, un compteur d'objectif zéro,
+  l'ajout qui modifie la liste sur place, un nom vide accepté en silence.
+- **Le parcours entier essayé dans un vrai navigateur** : ajout d'une habitude
+  nommée « Méditer l'après-midi » (accent et apostrophe) → clé
+  `mediter_l_apres_midi`, apparue sur l'écran du jour, cochée quatre fois,
+  valeur enregistrée à 4 et plafonnée à 1 point. Puis supprimée : liste passée
+  de 12 à 11, **et la valeur 4 toujours présente dans la journée**.
+- **Zéro débordement** à 320 et 430 px avec le formulaire ouvert.
+- **Un faux négatif attrapé au passage** : une de mes commandes de cassure n'a
+  rien remplacé — l'apostrophe typographique fait trois octets et le motif n'en
+  mangeait qu'un. Le test semblait dormir ; c'était la commande qui ne faisait
+  rien. Refaite avec une assertion qui échoue si le motif ne correspond pas.
+
 # 18/09/2026, 23 h 26 — Le hors-connexion marche : c'est Samer qui l'a prouvé, pas une machine
 
 Touche : Istiqama

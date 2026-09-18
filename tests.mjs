@@ -11,6 +11,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  identifiantDepuis, ajouterHabitude, supprimerHabitude, TYPES_HABITUDE,
   chaineSauveeParUnGel, gelsEnStock, joursAvantProchainGel, joursCorrects, chaineAvecGels, plusLongueChaine,
   prochainPalier, palierAtteint, progressionNiveau, niveau, rang, pointsTotaux,
   votes, grilleSemaine, bilanDuJour, PALIERS, GELS_MAX,
@@ -572,4 +573,147 @@ test('la notification ne peut pas rester suspendue pour toujours', async () => {
   assert.ok(fn, 'direCeQuiReste introuvable');
   assert.match(fn, /Promise\.race/, 'aucune limite de temps sur serviceWorker.ready');
   assert.match(fn, /setTimeout/);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Ajouter et retirer une habitude
+// ═══════════════════════════════════════════════════════════════════════════
+
+test("l'identifiant se fabrique sans accent ni espace, et ne se répète jamais", () => {
+  // Il devient une CLÉ dans chaque journée enregistrée : une clé avec un accent
+  // ou un espace se retrouve un jour dans un fichier qui la refuse.
+  assert.equal(identifiantDepuis('Méditer le matin'), 'mediter_le_matin');
+  assert.equal(identifiantDepuis("L'eau"), 'l_eau');
+  assert.equal(identifiantDepuis('  '), 'habitude');
+  assert.equal(identifiantDepuis('!!! ???'), 'habitude');
+
+  // deux habitudes du même nom ne doivent JAMAIS partager une clé : la seconde
+  // écraserait l'historique de la première, en silence
+  const prises = [{ id: 'sport' }, { id: 'sport_2' }];
+  assert.equal(identifiantDepuis('Sport', prises), 'sport_3');
+});
+
+test('ajouter une habitude ne modifie pas la liste existante', () => {
+  const avant = [{ id: 'bouger', domaine: 'corps', libelle: 'Bouger', type: 'oui-non', actif: true }];
+  const apres = ajouterHabitude(avant, { libelle: 'Méditer', domaine: 'tete', type: 'oui-non' });
+  assert.equal(avant.length, 1, 'la liste de départ ne doit pas bouger');
+  assert.equal(apres.length, 2);
+  assert.deepEqual(apres[1], { id: 'mediter', domaine: 'tete', libelle: 'Méditer', type: 'oui-non', actif: true });
+});
+
+test('un compteur ajouté a toujours un objectif utilisable', () => {
+  // Sans objectif, `pointsHabitude` diviserait par zéro et la journée entière
+  // deviendrait fausse — sans rien signaler.
+  const [h] = ajouterHabitude([], { libelle: 'Pas', type: 'compteur', objectif: 0 });
+  assert.equal(h.objectif, 1);
+  assert.equal(h.unite, 'fois');
+  const [g] = ajouterHabitude([], { libelle: 'Pas', type: 'compteur', objectif: '8000', unite: 'pas' });
+  assert.equal(g.objectif, 8000);
+});
+
+test('une habitude sans nom est REFUSÉE', () => {
+  assert.throws(() => ajouterHabitude([], { libelle: '   ' }), /besoin d’un nom/);
+});
+
+test('un type ou un domaine inconnu retombe sur une valeur sûre', () => {
+  const [h] = ajouterHabitude([], { libelle: 'X', type: 'n’importe quoi', domaine: 'inventé' });
+  assert.equal(h.type, 'oui-non');
+  assert.equal(h.domaine, 'corps');
+  assert.ok(TYPES_HABITUDE.some((t) => t.type === h.type));
+});
+
+test('supprimer retire de la liste et ne touche à AUCUNE journée', () => {
+  // Les journées passées restent vraies telles qu'elles ont été vécues ; et si
+  // l'habitude est recréée du même nom, son historique revient.
+  const habitudes = [{ id: 'a', type: 'oui-non' }, { id: 'b', type: 'oui-non' }];
+  const jours = { '2026-09-18': { tenu: { a: true, b: true } } };
+  const apres = supprimerHabitude(habitudes, 'a');
+  assert.deepEqual(apres.map((h) => h.id), ['b']);
+  assert.deepEqual(jours['2026-09-18'].tenu, { a: true, b: true }, 'les journées sont intactes');
+
+  // et la recréation retrouve la même clé, donc le même passé
+  assert.equal(identifiantDepuis('a', apres), 'a');
+});
+
+test("supprimer la dernière habitude ne casse rien", () => {
+  // Cas limite réel : il a le droit de tout enlever. Aucune division par zéro.
+  const r = { heureBascule: 17, habitudes: [], projets: [] };
+  assert.deepEqual(pointsDuJour({ tenu: {} }, r), { gagnes: 0, possibles: 0 });
+  assert.equal(partTenue({}, r, '2026-09-18', 7), null);
+  assert.equal(gelsEnStock({}, r), 0);
+  assert.equal(plusLongueChaine({}, r, '2026-09-18').jours, 0);
+  assert.equal(progressionNiveau({}, r).niveau, 1);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  Les adhkâr — et le pont entre les deux copies
+// ═══════════════════════════════════════════════════════════════════════════
+
+test('les adhkâr de l’app et ceux de RAPPELS.md sont les MÊMES', async () => {
+  // Deux copies d'une même liste finissent toujours par diverger, et c'est la
+  // seconde qui devient fausse en silence. Ici la seconde est un tableau que
+  // Samer lira sur son téléphone en installant les raccourcis : s'il ne dit pas
+  // la même chose que ce qu'il colle, il collera autre chose que ce qu'il croit.
+  const { readFile } = await import('node:fs/promises');
+  const { ADHKAR } = await import('./1-SOURCE/adhkar.js');
+  const md = await readFile(new URL('./RAPPELS.md', import.meta.url), 'utf8');
+
+  // on ne lit que les lignes du tableau numérotées 1..N
+  const lignes = md.split('\n').filter((l) => /^\| \d+ \|/.test(l));
+  assert.equal(lignes.length, ADHKAR.length,
+    `RAPPELS.md montre ${lignes.length} adhkâr, l'app en porte ${ADHKAR.length}`);
+
+  lignes.forEach((ligne, i) => {
+    const colonnes = ligne.split('|').map((c) => c.trim());
+    const dansLeDoc = colonnes[2]
+      .replace(/\*([^*]+)\*/g, '$1')         // les italiques du markdown
+      .replace(/^Sayyid al-istighfâr — /, '');
+    assert.equal(dansLeDoc, ADHKAR[i].texte,
+      `le dhikr n° ${i + 1} n'est pas le même dans RAPPELS.md et dans l'app`);
+  });
+});
+
+test('le texte à coller ne contient QUE les adhkâr, un par ligne', async () => {
+  // Il part tel quel dans une notification : un numéro ou une source en trop
+  // s'y retrouverait. Et une ligne vide ferait une notification vide.
+  const { ADHKAR, texteACollerDansRaccourcis } = await import('./1-SOURCE/adhkar.js');
+  const lignes = texteACollerDansRaccourcis().split('\n');
+  assert.equal(lignes.length, ADHKAR.length);
+  for (const l of lignes) {
+    assert.ok(l.trim().length > 0, 'une ligne vide donnerait une notification vide');
+    assert.doesNotMatch(l, /Bukhârî|Muslim|Abû Dâwûd|Tirmidhî|Nasâ/, 'une source a fui dans le texte à coller');
+    assert.doesNotMatch(l, /^\d+[.)]/, 'un numéro a fui dans le texte à coller');
+  }
+});
+
+test('aucun dhikr n’est écrit en alphabet arabe', async () => {
+  // Demandé par Samer le 18/09/2026 : « je les veux en franco-arabe pas l'arabe
+  // écriture ». Un seul caractère arabe qui repasse casserait la demande sans
+  // que personne ne le voie.
+  const { ADHKAR } = await import('./1-SOURCE/adhkar.js');
+  for (const d of ADHKAR) {
+    assert.doesNotMatch(d.texte, /[؀-ۿ]/, `« ${d.texte.slice(0, 30)}… » contient de l'arabe`);
+  }
+});
+
+test('ce qui n’est pas vérifié est MARQUÉ comme tel', async () => {
+  // Deux seulement ont été vérifiés à la source, et un a une authenticité
+  // discutée. Le prétendre autrement serait pire que de ne rien dire.
+  const { ADHKAR } = await import('./1-SOURCE/adhkar.js');
+  assert.equal(ADHKAR.filter((d) => d.verifie).length, 2);
+  assert.equal(ADHKAR.filter((d) => d.discute).length, 1);
+  assert.equal(ADHKAR.findIndex((d) => d.discute), 12, 'le n° 13 est celui dont l’authenticité est discutée');
+});
+
+test('la zone « texte à coller » de l’app porte EXACTEMENT ce qui doit être collé', async () => {
+  // C'est le chemin sûr : le bouton de copie peut échouer en silence (vu le
+  // 18/09/2026 : `clipboard.writeText` se résout sans rien écrire). La zone,
+  // elle, montre ce qu'elle contient — donc elle doit contenir la bonne chose.
+  const { readFile } = await import('node:fs/promises');
+  const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
+  assert.match(app, /id="texte-a-coller"[^>]*readonly/, 'la zone doit être en lecture seule');
+  assert.match(app, /<textarea id="texte-a-coller"[\s\S]{0,120}\$\{txt\(texteACollerDansRaccourcis\(\)\)\}/,
+    'la zone doit être remplie depuis texteACollerDansRaccourcis(), pas à la main');
+  // et le bouton ne doit pas affirmer un succès qu'il ne peut pas prouver
+  assert.doesNotMatch(app, /adhkâr copiés/, 'le bouton ne doit pas affirmer « copiés »');
 });
