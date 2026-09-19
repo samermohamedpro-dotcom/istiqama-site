@@ -24,6 +24,78 @@ elle n'est pas redite ici.
 
 ---
 
+# 19/09/2026, 12 h 49 — Le dhikr s'affiche EN ENTIER dans l'app, parce que la notification ne le pourra jamais
+
+Touche : Istiqama
+
+Statut : **constaté par Samer** — « quand j'ouvre l'app je ne vois pas le dhikr
+au complet »
+
+## Ce qui a été décidé
+
+- **Une carte « Le dhikr » sur l'écran du jour**, juste sous l'anneau : le texte
+  entier, sa source, et son rang (« 9 sur 14 »).
+- **Appuyer sur le texte compte** une répétition — le compteur de séance à côté,
+  le total du jour en dessous.
+- **Un bouton « Le suivant »** passe au dhikr suivant et remet le compteur de
+  séance à zéro.
+- **`dhikrIndex` désigne désormais ce qui est AFFICHÉ**, plus « ce qui viendra ».
+
+## Pourquoi
+
+**La notification sera toujours coupée, et ce n'est pas réparable** : iOS
+tronque la bannière après deux lignes. Le n° 9, *Sayyid al-istighfâr*, fait
+252 caractères — il ne rentrera jamais. Tirer la bannière vers le bas l'ouvre,
+mais c'est un geste qu'on ne fait pas en conduisant.
+
+**Le vrai défaut était ailleurs** : le dhikr n'était **nulle part** sur l'écran
+du jour. Il n'existait que dans les Réglages, derrière un bouton « Les voir ».
+L'app envoyait un texte qu'elle ne montrait pas. C'est un oubli de conception,
+pas un réglage.
+
+**Pourquoi `dhikrIndex` change de sens.** Il désignait « le prochain à
+montrer ». La carte et la notification auraient alors affiché deux adhkâr
+différents, décalés d'un cran, sans que personne ne comprenne pourquoi la
+bannière dit une chose et l'écran une autre. Il désigne maintenant ce qui est
+affiché : la notification avance d'un cran **puis** montre ce cran, et la carte
+lit le même nombre. Un test vérifie que les deux concordent.
+
+**Le compteur est une séance, pas une donnée.** Combien de fois on a répété le
+dhikr affiché n'a aucun sens le lendemain : il vit en mémoire. Le **total du
+jour**, lui, est enregistré.
+
+## Ce que ça change
+
+- **`adhkar.js`** gagne `dhikrCourant`. `logique.js` : une journée neuve porte
+  `dhikrs: 0`.
+- **L'écran du jour a une carte de plus**, et c'est la deuxième après l'anneau —
+  avant même la chose du jour. C'est un choix : c'est ce qu'on vient lire quand
+  une notification arrive.
+
+## Ce qui reste ouvert
+
+- **Le raccourci « Dhikr » tire au hasard**, donc il peut répéter — un raccourci
+  iOS ne mémorise rien entre deux exécutions. Seule l'app tient la promesse
+  « toujours différent ». Proposé à Samer : rendre le raccourci déterministe en
+  calculant l'indice depuis l'heure. Pas tranché.
+- **Le raccourci « Eau » ouvre l'app**, donc l'app affichera aussi un dhikr :
+  deux bannières coup sur coup. Proposé, pas tranché.
+- **Les 14 adhkâr ne sont toujours pas contrôlés** par Samer avec sa référence.
+
+## Vu passer
+
+- **68 tests, 68 verts.**
+- **Le plus long des quatorze regardé à l'écran** : 252 caractères, affiché
+  **entier**, sans coupure ni débordement.
+- **Les 14 adhkâr mesurés à 320 et 430 px** — 28 mesures, aucun débordement,
+  aucune coupure.
+- **Le compteur et « Le suivant » essayés** : trois appuis → « × 3 » et
+  « 3 aujourd'hui » ; « Le suivant » → n° 10, compteur de séance remis à zéro.
+- **Une fausse alerte, et c'est ma mesure qui avait tort** : le total du jour
+  semblait ne pas s'enregistrer. Je lisais la première clé du classeur
+  (`2026-09-18`, un reste d'essai) au lieu de celle d'aujourd'hui. Vérifié avant
+  de « corriger » un défaut qui n'existait pas.
+
 # 19/09/2026, 12 h 29 — La notification affiche un dhikr, et elle se tait quand elle vient de parler
 
 Touche : Istiqama

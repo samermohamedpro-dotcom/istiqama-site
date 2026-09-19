@@ -23,7 +23,7 @@
 
 | Onglet | Ce qu'on y fait | Le mécanisme |
 |---|---|---|
-| **Aujourd'hui** | cocher la journée ; il change de visage matin / soir | l'anneau du jour, le gel de chaîne, les paliers, la chose du jour, le bilan du soir |
+| **Aujourd'hui** | cocher la journée ; il change de visage matin / soir | l'anneau du jour, **le dhikr en entier**, le gel de chaîne, les paliers, la chose du jour, le bilan du soir |
 | **Le cumul** | regarder, ne rien saisir | le niveau et le rang, les gels en stock, la courbe, les votes, les chaînes, le temps par projet |
 | **L'argent** | mettre à jour une fois par mois | l'objectif, le verdict, les placements |
 | **Réglages** | changer ce qu'on suit, sauvegarder | — |

@@ -333,3 +333,22 @@ label.champ > span { display: block; font-size: 13px; color: var(--texte-doux); 
 /* --- les rappels ---------------------------------------------------------- */
 .rappel-etat { font-size: 15px; color: var(--texte-doux); }
 .rappel-etat.ok { color: var(--tenu); }
+
+/* --- le dhikr sur l'écran du jour ---------------------------------------- */
+/* Il n'était nulle part ici jusqu'au 19/09/2026. La notification sera toujours
+   coupée après deux lignes — c'est iOS qui décide. Donc c'est ICI qu'il doit
+   être lisible en entier, et confortablement. */
+.dhikr-carte { background: var(--encre-haute); border-color: var(--or-sombre); }
+.dhikr-texte {
+  display: block; width: 100%; text-align: left;
+  background: none; border: 0; padding: 4px 0 0; margin: 0;
+  color: var(--texte); font-family: inherit;
+  font-size: 19px; line-height: 1.55; cursor: pointer;
+  /* Le texte translittéré porte des accents rares (â î û) : un interlignage
+     serré les colle à la ligne du dessus et rend la lecture pénible. */
+}
+.dhikr-texte:active { color: var(--or); }
+.dhikr-bas { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 10px; }
+.dhikr-source { font-size: 13px; color: var(--texte-faible); }
+.dhikr-compte { font-size: 17px; color: var(--or); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dhikr-jour { font-size: 13px; color: var(--texte-faible); align-self: center; }

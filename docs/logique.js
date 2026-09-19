@@ -62,7 +62,7 @@ export function moisEntre(depuis, jusqua) {
 // ---------------------------------------------------------------------------
 
 export function jourVide() {
-  return { tenu: {}, chose: '', choseFaite: false, projets: {}, note: '' };
+  return { tenu: {}, chose: '', choseFaite: false, projets: {}, note: '', dhikrs: 0 };
 }
 
 export function habitudesActives(reglages) {

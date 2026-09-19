@@ -5,7 +5,7 @@
 import * as L from './logique.js';
 import * as D from './donnees.js';
 import { DOMAINES } from './depart.js';
-import { ADHKAR, texteACollerDansRaccourcis, dhikrSuivant, peutNotifier, corpsDuRappel } from './adhkar.js';
+import { ADHKAR, texteACollerDansRaccourcis, dhikrSuivant, dhikrCourant, peutNotifier, corpsDuRappel } from './adhkar.js';
 
 let classeur = D.lire();
 let onglet = 'aujourdhui';
@@ -17,6 +17,10 @@ let bilanOuvert = false;
 // données enregistrées.
 let nouvelleHabitude = null;
 let voirAdhkar = false;
+// Combien de fois le dhikr affiché a été répété depuis qu'il est à l'écran.
+// En mémoire et pas dans les données : c'est un compteur de séance, il n'a
+// aucun sens le lendemain.
+let compteSeance = 0;
 
 const ecran = document.getElementById('ecran');
 const piedOnglets = document.getElementById('onglets');
@@ -144,6 +148,8 @@ function vueAujourdhui() {
       ${barreNiveau(prog)}
     </div>`;
 
+  html += carteDhikr(jour);
+
   html += `
     <div class="carte chose ${jour.choseFaite ? 'faite' : ''}">
       <h2>La chose du jour</h2>
@@ -231,6 +237,33 @@ function blocGelOuAlerte(cle) {
       <div class="titre">Jamais deux fois de suite</div>
       <div class="quoi">Hier, tu as manqué : ${txt(enDanger.map((h) => h.libelle).join(', '))}.</div>
       <div class="regle">Manquer une fois est un accident. Manquer deux fois, c'est la nouvelle habitude qui commence.</div>
+    </div>`;
+}
+
+// Le dhikr, EN ENTIER, sur l'écran du jour.
+//
+// Il n'y était nulle part jusqu'au 19/09/2026 : il n'existait que dans les
+// Réglages. Samer : « quand j'ouvre l'app je ne vois pas le dhikr au complet ».
+// La notification, elle, sera toujours coupée après deux lignes — c'est iOS qui
+// décide, pas nous. Donc c'est ICI qu'il doit être lisible, entier.
+function carteDhikr(jour) {
+  const courant = dhikrCourant(classeur.dhikrIndex);
+  if (!courant) return '';
+  const { dhikr } = courant;
+  const total = Number(jour.dhikrs) || 0;
+  return `
+    <div class="carte dhikr-carte">
+      <h2>Le dhikr — ${courant.index + 1} sur ${ADHKAR.length}</h2>
+      <button class="dhikr-texte" data-action="compter-dhikr">${txt(dhikr.texte)}</button>
+      <div class="dhikr-bas">
+        <span class="dhikr-source">${txt(dhikr.source)}${
+  dhikr.discute ? ' · <b style="color:var(--danger)">authenticité discutée</b>' : ''}</span>
+        <span class="dhikr-compte">${compteSeance > 0 ? `× ${compteSeance}` : ''}</span>
+      </div>
+      <div class="boutons" style="margin-top:12px">
+        <button class="bouton or" data-action="dhikr-suivant">Le suivant</button>
+        <span class="dhikr-jour">${total > 0 ? `${total} aujourd'hui` : 'appuie sur le texte pour compter'}</span>
+      </div>
     </div>`;
 }
 
@@ -931,6 +964,19 @@ function agir(action, bouton) {
       // ouverture — et une proposition qu'on ne peut pas écarter est un harcèlement.
       classeur.gelRefuse = L.cleDecalee(aujourdhui(), -1);
       return true;
+    case 'compter-dhikr': {
+      compteSeance += 1;
+      const j = jourCourant();
+      j.dhikrs = (Number(j.dhikrs) || 0) + 1;
+      vibrer(1);
+      return true;
+    }
+    case 'dhikr-suivant': {
+      const t = dhikrSuivant(classeur.dhikrIndex + 1);
+      if (t) classeur.dhikrIndex = t.index;
+      compteSeance = 0;
+      return true;
+    }
     case 'voir-adhkar':
       voirAdhkar = !voirAdhkar;
       return true;
@@ -1026,7 +1072,10 @@ async function rappelDuMoment() {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     if (!peutNotifier(classeur.derniereNotification)) return;
 
-    const tour = dhikrSuivant(classeur.dhikrIndex);
+    // On avance d'un cran, et on montre CE cran. La carte de l'écran du jour lit
+    // le même `dhikrIndex`, donc elle affiche exactement ce que la notification
+    // vient de dire — coupé dans la bannière, entier dans l'app.
+    const tour = dhikrSuivant(classeur.dhikrIndex + 1);
     if (!tour) return;
 
     const cle = aujourdhui();
@@ -1036,7 +1085,8 @@ async function rappelDuMoment() {
     // On avance le tour AVANT d'afficher : si l'affichage échoue, le dhikr
     // suivant sortira quand même la fois d'après. Un tour bloqué redonnerait
     // exactement le défaut qu'on corrige.
-    classeur.dhikrIndex = tour.suivant;
+    classeur.dhikrIndex = tour.index;
+    compteSeance = 0;
     classeur.derniereNotification = new Date().toISOString();
     D.ecrire(classeur);
 

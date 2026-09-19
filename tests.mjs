@@ -791,3 +791,31 @@ test('le tour avance AVANT l’affichage, pas après', async () => {
     'le tour doit avancer avant l’affichage');
   assert.match(fn, /peutNotifier\(classeur\.derniereNotification\)/, 'le débit n’est pas limité');
 });
+
+test('la carte et la notification montrent le MÊME dhikr', async () => {
+  // Si l'index désignait « le prochain » pour l'une et « l'actuel » pour
+  // l'autre, elles se contrediraient d'un cran — et personne ne comprendrait
+  // pourquoi la bannière dit une chose et l'écran une autre.
+  const { readFile } = await import('node:fs/promises');
+  const { ADHKAR, dhikrCourant, dhikrSuivant } = await import('./1-SOURCE/adhkar.js');
+  const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
+
+  // la notification avance d'un cran PUIS retient ce cran
+  const fn = app.match(/async function rappelDuMoment\(\)[\s\S]*?\n\}/)?.[0];
+  assert.match(fn, /dhikrSuivant\(classeur\.dhikrIndex \+ 1\)/);
+  assert.match(fn, /classeur\.dhikrIndex = tour\.index/);
+  // la carte lit le même index, sans décalage
+  assert.match(app, /function carteDhikr[\s\S]{0,200}dhikrCourant\(classeur\.dhikrIndex\)/);
+
+  // et le calcul lui-même concorde : ce qu'on notifie est ce qu'on affiche
+  let index = 3;
+  const notifie = dhikrSuivant(index + 1);
+  index = notifie.index;
+  assert.equal(dhikrCourant(index).dhikr.texte, notifie.dhikr.texte);
+  assert.equal(dhikrCourant(ADHKAR.length - 1).index, ADHKAR.length - 1);
+});
+
+test('une journée neuve porte un compte de dhikr à zéro', async () => {
+  const { jourVide } = await import('./1-SOURCE/logique.js');
+  assert.equal(jourVide().dhikrs, 0);
+});

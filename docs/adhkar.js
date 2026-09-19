@@ -78,6 +78,16 @@ export function texteACollerDansRaccourcis(liste = ADHKAR) {
 // éléments, il retombe sur le même deux fois de suite une fois sur quatorze, et
 // laisse des adhkâr jamais vus pendant des jours. Un tour complet garantit ce
 // qu'il a demandé — toujours différent — et fait passer les quatorze.
+// Le dhikr actuellement affiché. `dhikrIndex` désigne ce qu'on VOIT — la carte
+// de l'écran du jour et la dernière notification montrent donc la même chose.
+// Si l'index désignait « le prochain », les deux se contrediraient d'un cran,
+// et personne ne comprendrait pourquoi.
+export function dhikrCourant(index = 0, liste = ADHKAR) {
+  if (liste.length === 0) return null;
+  const i = ((Number(index) || 0) % liste.length + liste.length) % liste.length;
+  return { dhikr: liste[i], index: i };
+}
+
 export function dhikrSuivant(index = 0, liste = ADHKAR) {
   if (liste.length === 0) return null;
   const i = ((Number(index) || 0) % liste.length + liste.length) % liste.length;
