@@ -7,6 +7,10 @@ elle n'est pas redite ici.
 **Index des corrections.** Une entrée devenue fausse se corrige par une
 **nouvelle** entrée, jamais en modifiant l'ancienne, et se signale ici.
 
+- **19/09/2026, 12 h 29 et 12 h 49** — la rotation séquentielle de l'app, le
+  débit de notification limité à 45 minutes, et « l'app affiche une
+  notification ». **Remplacés par l'entrée de 12 h 59** : le dhikr est devenu
+  une fonction de l'heure, et l'app n'envoie plus aucune notification.
 - **19/09/2026, 00 h 10** — l'eau à 10:30 pour premier rappel, et « le Fajr
   n'a pas de rappel d'eau ». **Corrigé par l'entrée de 12 h 29** : le premier
   verre passe au Fajr, à la demande de Samer.
@@ -23,6 +27,96 @@ elle n'est pas redite ici.
   `istiqama-site` existe, il est public, et l'app est servie par GitHub Pages.
 
 ---
+
+# 19/09/2026, 12 h 59 — Le dhikr est une fonction de l'heure : deux programmes qui ne se parlent pas tombent d'accord
+
+Touche : Istiqama
+
+Statut : **demandé par Samer** — « règle les deux »
+
+## Ce qui a été décidé
+
+- **Le dhikr affiché est celui de l'heure qu'il est** (`dhikrDeLHeure`), dans
+  l'app comme dans le raccourci. Plus aucun compteur enregistré.
+- **La liste à coller dans le raccourci fait 24 lignes**, une par heure.
+- **Le raccourci lit l'heure** au lieu de tirer au hasard : *Formater la date*
+  en `H`, **+ 1**, *Élément à l'index*.
+- **L'app n'envoie plus AUCUNE notification.**
+- **« Le suivant » devient un feuilletage** : un écart volontaire, qui se
+  referme dès que l'heure tourne.
+- **Le classeur perd `dhikrIndex` et `derniereNotification`.**
+
+## Pourquoi
+
+**Les deux défauts n'en faisaient qu'un, et c'est ce qui a permis de les régler
+ensemble.**
+
+- **Le raccourci pouvait répéter** : un raccourci iOS ne mémorise rien entre
+  deux exécutions, donc il tirait au hasard.
+- **Deux bannières au moment du rappel d'eau** : le raccourci « Eau » ouvre
+  l'app, et l'app notifiait à chaque ouverture.
+- **Et un troisième, que personne n'avait vu** : l'app et le raccourci
+  choisissaient chacun leur dhikr dans leur coin. On recevait une bannière
+  coupée, on ouvrait l'app pour lire la suite — et on trouvait **autre chose**.
+  Sans une seule erreur nulle part.
+
+**La racine était commune : deux états parallèles qui ne pouvaient pas rester
+d'accord.** La seule façon de faire concorder deux programmes qui ne se parlent
+pas est de leur donner une entrée commune qu'aucun des deux ne possède. Ici,
+c'est l'heure. Chacun calcule de son côté et tombe sur le même, pour toujours,
+sans synchronisation.
+
+**Pourquoi l'app cesse de notifier.** Une bannière qui s'affiche pendant qu'on
+regarde l'app ne sert à rien : la carte du dhikr est là, en entier, et la
+bannière la donne coupée. L'app ne notifiait qu'à son ouverture — donc toujours
+au mauvais moment.
+
+**Ce que ça coûte, et c'est dit partout** : tant que le raccourci n'est pas
+installé, il n'y a plus aucun rappel de dhikr. C'est écrit dans l'app, dans
+`RAPPELS.md`, et ici.
+
+**Pourquoi 24 lignes et pas 14** : Raccourcis sait lire « l'élément numéro N »
+mais pas calculer un reste de division sans deux actions de plus. Déplier la
+liste sur les heures fait passer la recette de onze actions à huit, sur un
+téléphone, à faire à la main. Le prix : sur des créneaux de 11 h à 23 h,
+**treize** des quatorze passent chaque jour — le quatorzième tombe à 10 h.
+Dit, pas caché.
+
+## Ce que ça change
+
+- **Neuf tests ont été RETIRÉS**, et un commentaire en tête de `tests.mjs` dit
+  lesquels et pourquoi. Ils ne gênaient pas : ils décrivaient une règle morte.
+  Ce qu'ils protégeaient l'est maintenant par un seul test, plus fort — celui
+  qui vérifie que le raccourci et l'app tombent sur le même dhikr aux 24 heures.
+- **Cinq fonctions supprimées** : `dhikrSuivant`, `peutNotifier`,
+  `corpsDuRappel`, `texteACollerDansRaccourcis`, et les deux fonctions de
+  permission de l'écran Réglages.
+- **Le crochet `notificationclick` du service ouvrier est GARDÉ exprès**, et la
+  raison est écrite dans le code : la décision sur une vraie notification
+  poussée est encore ouverte (`A-FAIRE.md`), et il servira tel quel ce jour-là.
+
+## Ce qui reste ouvert
+
+- **Samer n'a toujours pas contrôlé les 14 adhkâr** avec sa référence.
+- **Les raccourcis ne sont pas installés** — et maintenant, sans eux, il n'y a
+  aucun rappel.
+- **La vraie notification poussée**, toujours à trancher.
+
+## Vu passer
+
+- **70 tests, 70 verts.**
+- **Le test d'accord vu REFUSER trois divergences** : le raccourci décalé d'une
+  ligne, la liste ramenée à 14 lignes, et le dhikr rendu dépendant du jour.
+- **Vérifié dans le navigateur** : à 12 h, l'app affiche « 13 sur 14 · celui de
+  cette heure », et le texte est exactement celui que renvoie `dhikrDeLHeure`.
+  « Le suivant » passe à « 14 sur 14 · feuilleté ».
+- **Les 24 lignes de la zone à coller comparées une par une** aux 24 heures :
+  toutes concordent.
+- **Deux fausses manœuvres attrapées sur moi-même** : une assertion a bloqué
+  l'écriture d'`app.js` à mi-chemin (le fichier est resté intact, et c'est pour
+  ça qu'elle était là) ; et `dhikrCourant` a été emporté par le nettoyage parce
+  qu'il vivait entre un commentaire et une fonction morte — les tests l'ont dit
+  tout de suite.
 
 # 19/09/2026, 12 h 49 — Le dhikr s'affiche EN ENTIER dans l'app, parce que la notification ne le pourra jamais
 

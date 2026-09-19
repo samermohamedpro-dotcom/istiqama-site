@@ -5,7 +5,7 @@
 import * as L from './logique.js';
 import * as D from './donnees.js';
 import { DOMAINES } from './depart.js';
-import { ADHKAR, texteACollerDansRaccourcis, dhikrSuivant, dhikrCourant, peutNotifier, corpsDuRappel } from './adhkar.js';
+import { ADHKAR, dhikrDeLHeure, dhikrCourant, listePourRaccourci } from './adhkar.js';
 
 let classeur = D.lire();
 let onglet = 'aujourdhui';
@@ -21,6 +21,22 @@ let voirAdhkar = false;
 // En mémoire et pas dans les données : c'est un compteur de séance, il n'a
 // aucun sens le lendemain.
 let compteSeance = 0;
+// De combien on s'est déplacé à la main dans la liste, et à quelle heure. Le
+// dhikr est celui de l'heure ; feuilleter est un écart volontaire, qui se
+// referme dès que l'heure tourne — sinon l'app cesserait d'être d'accord avec
+// la notification sans que personne ne comprenne pourquoi.
+let decalageDhikr = 0;
+let heureDuDecalage = null;
+
+function dhikrAffiche() {
+  const maintenant = new Date();
+  if (heureDuDecalage !== null && heureDuDecalage !== maintenant.getHours()) {
+    decalageDhikr = 0;
+    heureDuDecalage = null;
+  }
+  const base = dhikrDeLHeure(maintenant);
+  return base ? dhikrCourant(base.index + decalageDhikr) : null;
+}
 
 const ecran = document.getElementById('ecran');
 const piedOnglets = document.getElementById('onglets');
@@ -247,13 +263,13 @@ function blocGelOuAlerte(cle) {
 // La notification, elle, sera toujours coupée après deux lignes — c'est iOS qui
 // décide, pas nous. Donc c'est ICI qu'il doit être lisible, entier.
 function carteDhikr(jour) {
-  const courant = dhikrCourant(classeur.dhikrIndex);
+  const courant = dhikrAffiche();
   if (!courant) return '';
   const { dhikr } = courant;
   const total = Number(jour.dhikrs) || 0;
   return `
     <div class="carte dhikr-carte">
-      <h2>Le dhikr — ${courant.index + 1} sur ${ADHKAR.length}</h2>
+      <h2>Le dhikr — ${courant.index + 1} sur ${ADHKAR.length}${decalageDhikr !== 0 ? ' · feuilleté' : ' · celui de cette heure'}</h2>
       <button class="dhikr-texte" data-action="compter-dhikr">${txt(dhikr.texte)}</button>
       <div class="dhikr-bas">
         <span class="dhikr-source">${txt(dhikr.source)}${
@@ -658,36 +674,34 @@ function vueReglages() {
 
     <div class="carte">
       <h2>Le rappel du jour</h2>
-      <div class="rappel-etat ${permission === 'granted' ? 'ok' : ''}">${etatRappel(permission)}</div>
-      ${permission === 'granted' ? '' : `
-        <div class="boutons" style="margin-top:11px">
-          <button class="bouton or" data-action="autoriser-rappels">Autoriser les notifications</button>
-        </div>`}
-      <div class="note-bas" style="margin-top:12px">
-        <b>Ce qu'une app web NE PEUT PAS faire sur iPhone</b> : se réveiller toute seule.
-        Il faudrait un serveur qui envoie la notification. Et <b>iOS n'a aucun déclencheur
-        « toutes les 20 minutes »</b> : les automatisations ne partent qu'à des heures fixes.
+      <div class="note-bas" style="margin:0">
+        <b>L'app n'envoie plus de notification elle-même</b>, et c'est voulu : elle en envoyait une
+        à chaque ouverture, ce qui faisait deux bannières coup sur coup au moment du rappel d'eau —
+        et une bannière affichée pendant qu'on regarde l'app ne sert à rien, la carte du dhikr étant
+        juste là, en entier.
         <br><br>
-        <b>Ce qui marche</b> : l'app <i>Raccourcis</i>, une automatisation par heure.
-        Le mode d'emploi complet est dans <i>RAPPELS.md</i>.
+        <b>Les rappels viennent de l'app <i>Raccourcis</i></b>, une automatisation par heure.
+        <b>Tant qu'elles ne sont pas installées, tu n'as aucun rappel.</b>
+        Le mode d'emploi est dans <i>RAPPELS.md</i> — deux raccourcis à créer, puis les heures.
       </div>
     </div>
 
     <div class="carte">
-      <h2>Le dhikr — ${ADHKAR.length} adhkâr en rotation</h2>
+      <h2>Le dhikr — ${ADHKAR.length} adhkâr, un par heure</h2>
       <div class="note-bas" style="margin:0 0 12px">
-        Colle cette liste dans l'action <b>Texte</b> du raccourci « Dhikr » : il en tire un au hasard
-        et l'affiche. Une ligne par dhikr, rien d'autre — chaque caractère en trop se retrouverait
-        dans la notification.
+        Colle cette liste dans l'action <b>Texte</b> du raccourci « Dhikr ». Elle fait
+        <b>24 lignes</b> et non ${ADHKAR.length} : <b>une par heure de la journée</b>. Le raccourci
+        prend la ligne qui correspond à l'heure qu'il est — donc la notification et l'écran de l'app
+        montrent <b>toujours le même dhikr</b>, sans rien se partager.
       </div>
       <div class="boutons">
-        <button class="bouton or" data-action="copier-adhkar">Copier les ${ADHKAR.length} adhkâr</button>
+        <button class="bouton or" data-action="copier-adhkar">Copier les 24 lignes</button>
         <button class="bouton" data-action="voir-adhkar">${voirAdhkar ? 'Masquer' : 'Les voir avec leurs sources'}</button>
       </div>
 
       <label class="champ" style="margin-top:14px;margin-bottom:0">
-        <span>Le texte à coller — si le bouton ne donne rien, appui long ici → Tout sélectionner → Copier</span>
-        <textarea id="texte-a-coller" readonly rows="6" style="font-size:14px">${txt(texteACollerDansRaccourcis())}</textarea>
+        <span>Les 24 lignes à coller — si le bouton ne donne rien, appui long ici → Tout sélectionner → Copier</span>
+        <textarea id="texte-a-coller" readonly rows="6" style="font-size:14px">${txt(listePourRaccourci())}</textarea>
       </label>
       ${voirAdhkar ? listeAdhkar() : ''}
       <div class="note-bas" style="margin-top:12px">
@@ -817,12 +831,6 @@ function listeAdhkar() {
     </div>`).join('')}</div>`;
 }
 
-function etatRappel(permission) {
-  if (permission === 'absente') return "Ce navigateur ne connaît pas les notifications. Rien à activer.";
-  if (permission === 'granted') return "✓ Les notifications sont autorisées. L'app peut t'afficher ce qu'il te reste quand elle s'ouvre.";
-  if (permission === 'denied') return "Les notifications ont été refusées. Ça se change dans Réglages › Istiqama › Notifications, sur le téléphone.";
-  return "Les notifications ne sont pas encore autorisées.";
-}
 
 // ---------------------------------------------------------------------------
 // Le rendu et les gestes
@@ -971,20 +979,16 @@ function agir(action, bouton) {
       vibrer(1);
       return true;
     }
-    case 'dhikr-suivant': {
-      const t = dhikrSuivant(classeur.dhikrIndex + 1);
-      if (t) classeur.dhikrIndex = t.index;
+    case 'dhikr-suivant':
+      decalageDhikr += 1;
+      heureDuDecalage = new Date().getHours();
       compteSeance = 0;
       return true;
-    }
     case 'voir-adhkar':
       voirAdhkar = !voirAdhkar;
       return true;
     case 'copier-adhkar':
-      copierDansLePressePapier(texteACollerDansRaccourcis(), bouton, `${ADHKAR.length} adhkâr — colle pour vérifier`);
-      return false;
-    case 'autoriser-rappels':
-      demanderRappels();
+      copierDansLePressePapier(listePourRaccourci(), bouton, '24 lignes — colle pour vérifier');
       return false;
     case 'ajouter-placement':
       classeur.argent.placements.push({ nom: '', investi: 0, valeur: '' });
@@ -1038,72 +1042,25 @@ function agir(action, bouton) {
   }
 }
 
-// --- Les rappels -----------------------------------------------------------
+
+// POURQUOI L'APP N'ENVOIE PLUS DE NOTIFICATION — 19/09/2026
 //
-// Ce que l'app peut honnêtement faire : afficher ce qu'il reste QUAND ELLE
-// S'OUVRE. Ce qu'elle ne peut pas : se réveiller seule. Une app web sur iPhone
-// n'a aucun moyen de programmer une notification locale ; il faudrait un
-// serveur qui la pousse, donc des données qui quittent le téléphone.
+// Elle en envoyait une à chaque ouverture. Deux défauts qui n'en faisaient
+// qu'un : le raccourci « Eau » ouvre l'app, donc on recevait DEUX bannières
+// coup sur coup à chaque rappel d'eau ; et une notification qui s'affiche
+// pendant qu'on regarde l'app ne sert à rien — la carte du dhikr est juste là,
+// en entier, et la bannière la donne coupée.
 //
-// La chaîne qui marche, et qui ne coûte rien : une automatisation Raccourcis
-// ouvre Istiqama à l'heure dite → Istiqama affiche ce qu'il reste. Le mode
-// d'emploi est dans LISEZ-MOI-DABORD.md.
-async function demanderRappels() {
-  try {
-    if (typeof Notification === 'undefined') return;
-    await Notification.requestPermission();
-    rendre();
-  } catch { /* un refus n'est pas une panne */ }
-}
-
-// Le rappel : un dhikr, et il n'est JAMAIS le même deux fois de suite.
+// C'est donc le raccourci Raccourcis qui notifie, et lui seul. Les deux
+// montrent le même dhikr parce qu'ils le calculent tous les deux depuis
+// l'heure (`dhikrDeLHeure`), sans rien se partager.
 //
-// Demandé par Samer le 19/09/2026 : « je veux que la notification affiche le
-// dhikr au lieu de me mettre tout le temps la même chose ». Sa capture montrait
-// trois notifications identiques en une heure — « Il te reste 11 choses » — une
-// par ouverture de l'app.
+// Ce que ça coûte, et il faut le savoir : tant que le raccourci n'est pas
+// installé, il n'y a plus aucun rappel. Le mode d'emploi est dans RAPPELS.md.
 //
-// Deux corrections, et la seconde compte autant que la première : le contenu
-// tourne (séquentiel, pas au hasard : le hasard répète), ET l'app se tait si
-// elle vient de parler. Une notification qu'on voit trop devient un décor, puis
-// on coupe les notifications de l'app — et on perd tout.
-async function rappelDuMoment() {
-  try {
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-    if (!peutNotifier(classeur.derniereNotification)) return;
-
-    // On avance d'un cran, et on montre CE cran. La carte de l'écran du jour lit
-    // le même `dhikrIndex`, donc elle affiche exactement ce que la notification
-    // vient de dire — coupé dans la bannière, entier dans l'app.
-    const tour = dhikrSuivant(classeur.dhikrIndex + 1);
-    if (!tour) return;
-
-    const cle = aujourdhui();
-    const { gagnes, possibles } = L.pointsDuJour(classeur.jours[cle], classeur.reglages);
-    const reste = Math.max(0, possibles - Math.ceil(gagnes));
-
-    // On avance le tour AVANT d'afficher : si l'affichage échoue, le dhikr
-    // suivant sortira quand même la fois d'après. Un tour bloqué redonnerait
-    // exactement le défaut qu'on corrige.
-    classeur.dhikrIndex = tour.index;
-    compteSeance = 0;
-    classeur.derniereNotification = new Date().toISOString();
-    D.ecrire(classeur);
-
-    const corps = corpsDuRappel(tour.dhikr, reste);
-
-    // `navigator.serviceWorker.ready` ne se résout JAMAIS quand l'enregistrement
-    // a échoué — il ne rejette pas, il attend. Sans cette course, la fonction
-    // resterait suspendue pour toujours, sans une ligne d'erreur.
-    const inscription = await Promise.race([
-      navigator.serviceWorker?.ready,
-      new Promise((r) => setTimeout(() => r(null), 1500)),
-    ]);
-    const options = { body: corps, tag: `istiqama-${cle}`, icon: 'icone-180.png' };
-    if (inscription) await inscription.showNotification('Dhikr', options);
-    else new Notification('Dhikr', options);   // sans service ouvrier, la voie directe
-  } catch { /* jamais au prix d'un écran blanc */ }
-}
+// Le crochet `notificationclick` du service ouvrier est GARDÉ exprès : la
+// décision sur une vraie notification poussée est encore ouverte (A-FAIRE.md),
+// et il servira tel quel ce jour-là.
 
 // La porte de sortie d'un composant que personne n'a pu vérifier ici : le
 // service ouvrier ne s'enregistre pas dans tous les navigateurs, et un service
@@ -1182,7 +1139,6 @@ setInterval(() => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) return;
   if (aujourdhui() !== jourAffiche) { jourAffiche = aujourdhui(); bilanOuvert = false; rendre(); }
-  rappelDuMoment();
 });
 
 // Le service ouvrier : il sert l'app hors connexion. Sans lui, un métro sans
@@ -1192,4 +1148,3 @@ if ('serviceWorker' in navigator) {
 }
 
 rendre();
-rappelDuMoment();

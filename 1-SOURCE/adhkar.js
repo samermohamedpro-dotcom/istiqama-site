@@ -61,64 +61,49 @@ export const ADHKAR = [
     source: 'Abû Dâwûd 1522 — sahîh', taille: 'court' },
 ];
 
-// Ce qui se colle dans l'action « Texte » du raccourci : une ligne par dhikr,
-// rien d'autre. Pas de numéro, pas de source — le raccourci tire une ligne au
-// hasard et l'affiche telle quelle, donc chaque caractère en trop se retrouve
-// dans la notification.
-export function texteACollerDansRaccourcis(liste = ADHKAR) {
-  return liste.map((d) => d.texte).join('\n');
-}
 
-// --- La rotation -----------------------------------------------------------
+// Le dhikr à un rang donné, quel que soit le nombre qu'on lui passe.
 //
-// Samer, le 19/09/2026 : « je veux que la notification affiche le dhikr au lieu
-// de me mettre tout le temps la même chose ».
-//
-// La rotation est SÉQUENTIELLE, pas au hasard. Le hasard répète : sur 14
-// éléments, il retombe sur le même deux fois de suite une fois sur quatorze, et
-// laisse des adhkâr jamais vus pendant des jours. Un tour complet garantit ce
-// qu'il a demandé — toujours différent — et fait passer les quatorze.
-// Le dhikr actuellement affiché. `dhikrIndex` désigne ce qu'on VOIT — la carte
-// de l'écran du jour et la dernière notification montrent donc la même chose.
-// Si l'index désignait « le prochain », les deux se contrediraient d'un cran,
-// et personne ne comprendrait pourquoi.
+// Le rang peut venir d'un décalage manuel répété, d'un classeur restauré, de
+// n'importe quoi : il est ramené dans la liste plutôt que de faire planter
+// l'affichage. Le `+ liste.length` avant le second modulo est là pour les
+// nombres négatifs — sans lui, `-1 % 14` vaut `-1` en JavaScript, et l'app
+// afficherait `undefined`.
 export function dhikrCourant(index = 0, liste = ADHKAR) {
   if (liste.length === 0) return null;
   const i = ((Number(index) || 0) % liste.length + liste.length) % liste.length;
   return { dhikr: liste[i], index: i };
 }
 
-export function dhikrSuivant(index = 0, liste = ADHKAR) {
+// --- Le dhikr de l'heure ---------------------------------------------------
+//
+// Réécrit le 19/09/2026 pour régler deux défauts d'un coup.
+//
+// AVANT : l'app gardait un compteur, et le raccourci Raccourcis tirait au
+// hasard. Deux conséquences, toutes deux mauvaises — le raccourci pouvait
+// répéter le même dhikr deux heures de suite (un raccourci iOS ne mémorise
+// rien entre deux exécutions), et surtout l'app et la notification montraient
+// deux adhkâr DIFFÉRENTS. On recevait une bannière, on ouvrait l'app pour lire
+// la suite, et on trouvait autre chose.
+//
+// MAINTENANT : le dhikr est une fonction de l'heure. Les deux le calculent
+// chacun de son côté et tombent forcément sur le même, sans rien se partager
+// et sans qu'aucun état ne puisse se désynchroniser. C'est la seule façon de
+// faire accorder deux programmes qui ne se parlent pas.
+export function dhikrDeLHeure(maintenant = new Date(), liste = ADHKAR) {
   if (liste.length === 0) return null;
-  const i = ((Number(index) || 0) % liste.length + liste.length) % liste.length;
-  return { dhikr: liste[i], index: i, suivant: (i + 1) % liste.length };
+  const i = maintenant.getHours() % liste.length;
+  return { dhikr: liste[i], index: i };
 }
 
-// --- Le débit de notifications ---------------------------------------------
+// Les 24 lignes à coller dans le raccourci : une par heure de la journée.
 //
-// L'app envoyait une notification à CHAQUE retour au premier plan : trois en
-// une heure sur la capture de Samer du 19/09/2026, toutes identiques. Une
-// notification qu'on voit trop devient un décor, puis on coupe les
-// notifications de l'app — et on perd tout.
-//
-// Le seuil est en dessous de l'heure, parce que le rythme visé est horaire :
-// un rappel qui arrive 58 minutes après le précédent doit passer.
-export const MINUTES_ENTRE_NOTIFICATIONS = 45;
-
-export function peutNotifier(derniereISO, maintenant = new Date(), minutes = MINUTES_ENTRE_NOTIFICATIONS) {
-  if (!derniereISO) return true;
-  const derniere = new Date(derniereISO).getTime();
-  if (Number.isNaN(derniere)) return true;   // une date illisible ne doit pas bloquer pour toujours
-  return (maintenant.getTime() - derniere) >= minutes * 60000;
-}
-
-// Le texte exact de la notification. Séparé de l'écran pour être éprouvable :
-// un corps de notification mal formé ne se voit que sur le téléphone, une fois
-// qu'il est trop tard.
-//
-// Le dhikr vient EN PREMIER : c'est lui qu'on veut lire, et iOS coupe la suite
-// dans la bannière. Le reste de la journée passe en seconde ligne.
-export function corpsDuRappel(dhikr, reste) {
-  const fin = reste > 0 ? `il te reste ${reste} chose${reste > 1 ? 's' : ''}` : 'journée pleine';
-  return `${dhikr.texte}\n· ${fin}`;
+// Pourquoi 24 et pas 14 : Raccourcis sait lire « l'élément numéro N » d'une
+// liste, mais il ne sait pas calculer un reste de division sans deux actions de
+// plus. En dépliant la liste sur les 24 heures, le raccourci n'a qu'à prendre
+// l'heure + 1 — quatre actions au lieu de sept, sur un téléphone, à faire à la
+// main. La ligne N vaut pour l'heure N-1, parce que Raccourcis compte à partir
+// de 1 et les heures à partir de 0.
+export function listePourRaccourci(liste = ADHKAR) {
+  return Array.from({ length: 24 }, (_, h) => liste[h % liste.length].texte).join('\n');
 }

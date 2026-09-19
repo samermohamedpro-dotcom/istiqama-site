@@ -42,36 +42,58 @@ référence.
 | 13 | Hasbiya-Llâhu lâ ilâha illâ huwa, 'alayhi tawakkaltu wa huwa Rabbu-l-'archi-l-'azîm | Abû Dâwûd 5081 — **authenticité discutée** | moyen |
 | 14 | Allâhumma a'innî 'alâ dhikrika wa chukrika wa husni 'ibâdatik | Abû Dâwûd 1522 — *sahîh* | court |
 
-**Le texte à coller** dans Raccourcis se récupère en deux gestes :
-Istiqama → *Réglages* → *Les rappels* → **Copier les 14 adhkâr**. Une ligne par
-dhikr, dans l'ordre du tableau. C'est la même liste, construite depuis le même
-fichier — elle ne peut pas diverger.
+**Chaque dhikr a son heure** : le n° N tombe à l'heure N-1, puis douze heures
+plus tard. Sur tes créneaux de 11 h à 23 h, cela donne les n° 12, 13, 14, puis
+1 à 10.
+
+**Le texte à coller** se récupère en deux gestes : Istiqama → *Réglages* →
+*Le dhikr* → appui long dans la zone → Tout sélectionner → Copier. **24 lignes**,
+une par heure. Elles sont construites depuis le même fichier que le tableau
+ci-dessus, et un test compare les deux — elles ne peuvent pas diverger.
 
 ---
 
 ## Le raccourci « Dhikr » — à faire UNE fois
 
-Il tire un dhikr au hasard dans la liste et l'affiche. Quatre actions.
+**Il ne tire plus au hasard.** Il prend **le dhikr de l'heure qu'il est** — donc
+la notification et l'écran de l'app montrent toujours le même, sans que les deux
+aient besoin de se parler. C'est pour ça que la liste fait **24 lignes** et non
+14 : une par heure de la journée.
 
-1. App **Raccourcis** → onglet **Raccourcis** → **+** (en haut à droite)
-2. **Ajouter une action** → cherche **Texte** → colle les 14 lignes
-   (copiées depuis Istiqama)
-3. **+** → cherche **Diviser le texte** → séparateur : **Nouvelles lignes**
-4. **+** → cherche **Obtenir l'élément de la liste** → choisis **Élément
-   aléatoire**
-5. **+** → cherche **Afficher la notification** → mets l'élément obtenu comme
-   contenu
-6. Renomme-le **Dhikr** et enregistre.
+*Pourquoi 24 : Raccourcis sait lire « l'élément numéro N » d'une liste, mais pas
+calculer un reste de division sans deux actions de plus. En dépliant la liste
+sur les heures, il n'a qu'à prendre l'heure + 1.*
 
-*Les noms d'actions peuvent varier légèrement selon la version d'iOS. Si tu ne
-trouves pas « Diviser le texte », cherche « texte » et regarde la liste.*
+1. App **Raccourcis** → onglet **Raccourcis** → **+**
+2. **Ajouter une action** → **Texte** → colle les **24 lignes**
+   (Istiqama → *Réglages* → *Le dhikr* → appui long dans la zone → Tout
+   sélectionner → Copier)
+3. **+** → **Diviser le texte** → séparateur : **Nouvelles lignes**
+4. **+** → **Date** (la date du moment)
+5. **+** → **Formater la date** → *Format de date* : **Personnalisé** →
+   format : **`H`** *(H majuscule : l'heure sur 24, sans zéro devant)*
+6. **+** → **Calculer** → la date formatée **+ 1**
+   *(Raccourcis compte les listes à partir de 1, les heures à partir de 0.)*
+7. **+** → **Obtenir l'élément de la liste** → **Élément à l'index** = le
+   résultat du calcul, dans la **liste** de l'étape 3
+8. **+** → **Afficher la notification** → l'élément obtenu
+9. Renomme-le **Dhikr** et enregistre.
 
-**Et l'app en fait autant, de son côté.** Depuis le 19/09/2026, quand Istiqama
-s'ouvre, elle affiche elle-même une notification avec **le dhikr suivant** —
-séquentiel, jamais deux fois le même — et le nombre de choses qui restent. Elle
-se tait si elle vient de parler il y a moins de 45 minutes. Les deux sources ne
-se gênent pas : le raccourci sonne sans ouvrir l'app, l'app parle quand elle
-s'ouvre.
+**Vérifie-le tout de suite** : lance-le à la main, et compare avec ce qu'affiche
+Istiqama sur l'écran du jour. **Les deux doivent dire la même chose.** Sinon,
+c'est l'étape 5 ou 6 qui a un souci.
+
+**Sur tes créneaux de 11 h à 23 h, treize adhkâr différents passent chaque
+jour** — jamais deux fois le même dans la journée. Le quatorzième n'apparaît
+qu'à 10 h : c'est le prix de la simplicité du raccourci, et c'est dit plutôt que
+caché.
+
+**L'app, elle, n'envoie AUCUNE notification** — choix du 19/09/2026. Elle en
+envoyait une à chaque ouverture : cela faisait deux bannières coup sur coup au
+moment du rappel d'eau (qui ouvre l'app), et une bannière affichée pendant qu'on
+regarde l'app ne sert à rien puisque la carte du dhikr y est déjà, en entier.
+**Tant que ce raccourci n'est pas installé, il n'y a donc aucun rappel de
+dhikr.**
 
 ## Le raccourci « Eau » — à faire UNE fois
 
@@ -139,6 +161,8 @@ automatisation à heure fixe ne la suit pas. Deux façons de vivre avec :
 - **Une automatisation « Heure de la journée » peut ne pas partir** si le
   téléphone n'a pas été touché depuis plusieurs heures. Ce n'est pas un réveil
   de précision.
+- **Le raccourci « Eau » ouvre l'app**, et c'est voulu : tu coches ton verre
+  d'un geste. Il n'y a plus de double bannière, puisque l'app ne notifie plus.
 - **Il n'y aura pas de rappel toutes les 20 minutes.** iOS ne sait pas le faire,
   et une app web encore moins. Le seul chemin fiable serait une vraie app
   native, ou un serveur qui pousse — et ce dernier ferait sortir l'adresse de
