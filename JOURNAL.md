@@ -7,6 +7,9 @@ elle n'est pas redite ici.
 **Index des corrections.** Une entrée devenue fausse se corrige par une
 **nouvelle** entrée, jamais en modifiant l'ancienne, et se signale ici.
 
+- **19/09/2026, 12 h 59** — « l'app n'envoie plus AUCUNE notification », et le
+  raccourci Dhikr à huit actions. **Renversés par Samer le même jour**, entrée
+  de 13 h 43 : c'est l'app qui notifie, et le raccourci n'a plus qu'une action.
 - **19/09/2026, 12 h 29 et 12 h 49** — la rotation séquentielle de l'app, le
   débit de notification limité à 45 minutes, et « l'app affiche une
   notification ». **Remplacés par l'entrée de 12 h 59** : le dhikr est devenu
@@ -27,6 +30,81 @@ elle n'est pas redite ici.
   `istiqama-site` existe, il est public, et l'app est servie par GitHub Pages.
 
 ---
+
+# 19/09/2026, 13 h 43 — C'est l'app qui parle : un raccourci à UNE action, et la traduction sous chaque dhikr
+
+Touche : Istiqama
+
+Statut : **tranché par Samer**, contre ma conception de l'après-midi
+
+## Ce qui a été décidé
+
+- **C'est l'app qui écrit la notification**, plus le raccourci. Elle dit
+  « Un verre d'eau » aux heures d'eau, « Dhikr » le reste du temps, et met le
+  dhikr de l'heure dans le corps.
+- **Les 14 adhkâr ont une traduction française.** Dans l'app : sous le texte,
+  plus petite, en italique. Dans la notification : à la ligne suivante.
+- **Les raccourcis tombent à UN seul, avec UNE action** : *Ouvrir les URL*.
+  Le même pour l'eau et pour le dhikr.
+- **Les heures d'eau entrent dans les réglages** (`heuresEau`), avec une marge
+  de 12 minutes.
+
+## Pourquoi
+
+**Samer a renversé ma conception, et il a eu raison.** À 12 h 59 j'avais retiré
+la notification de l'app pour supprimer une double bannière, et reporté tout le
+travail sur le raccourci — huit actions à monter à la main, avec un format de
+date et un calcul. Sa réponse : « je préfère quand c'était l'app qui me disait
+verre d'eau ou dhikr avec le dhikr écrit directement dans le centre de
+notification ».
+
+**Ce que j'avais raté** : la double bannière venait de ce que DEUX choses
+notifiaient. Je l'ai réglée en supprimant la mauvaise des deux. En supprimant
+l'autre — la notification du raccourci — le problème disparaît pareil, **et**
+le raccourci devient trivial, **et** le contenu est écrit par le seul programme
+qui sait tout : l'app. Trois gains au lieu d'un.
+
+**La marge de 12 minutes sur les heures d'eau** : une automatisation iOS ne part
+pas à la seconde. Sans marge, un rappel de 10 h 30 parti à 10 h 34 arriverait
+sous le titre « Dhikr », au moment de boire.
+
+**Ce que je n'ai pas pu faire, et qui était demandé** : la traduction « en plus
+petit » DANS la notification. Le corps d'une notification iOS n'a qu'une seule
+fonte. Elle est donc à la ligne du dessous, de la même taille. **Dans l'app,
+elle est plus petite et en italique** — et un test vérifie qu'elle l'est
+réellement, en comparant les deux tailles dans la feuille de style.
+
+## Ce que ça change
+
+- **Deux tests ont été réécrits** — ils affirmaient « l'app n'envoie AUCUNE
+  notification », règle qui aura vécu deux heures. Le commentaire qui les
+  remplace dit pourquoi, et qui a tranché.
+- **Trois ponts entre copies existent maintenant** : les textes, les
+  traductions, et les heures d'eau — tous entre `RAPPELS.md` et le code.
+- **Les traductions sont des rendus français courants**, pas une traduction
+  savante. C'est écrit dans le code et dans le document : elles se contrôlent
+  comme le reste.
+
+## Ce qui reste ouvert
+
+- **Les 14 adhkâr ET leurs traductions** attendent toujours le contrôle de
+  Samer avec sa référence.
+- **Les automatisations ne sont pas installées.**
+
+## Vu passer
+
+- **75 tests, 75 verts.**
+- **Huit protections cassées et vues rouges** : la marge d'eau supprimée puis
+  élargie à 45 minutes, la traduction placée avant le texte, la traduction
+  rendue aussi grosse que le texte, le titre figé sur « Dhikr », une traduction
+  divergente entre le document et le code, une heure d'eau changée dans le
+  document, une heure d'eau retirée de l'app.
+- **Regardé à l'écran** : texte à 19 px, traduction à 14 px en italique
+  dessous, puis la source. Aucun débordement.
+- **Deux fausses manœuvres sur moi-même** : une insertion tombée APRÈS
+  l'accolade fermante (le fichier ne compilait plus, `git checkout` et refait
+  proprement), et un motif de cassure avec un antislash de trop — l'assertion
+  a bloqué avant d'écrire, comme elle devait.
 
 # 19/09/2026, 12 h 59 — Le dhikr est une fonction de l'heure : deux programmes qui ne se parlent pas tombent d'accord
 

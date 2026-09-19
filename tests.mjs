@@ -654,11 +654,16 @@ test('les adhkâr de l’app et ceux de RAPPELS.md sont les MÊMES', async () =>
 
   lignes.forEach((ligne, i) => {
     const colonnes = ligne.split('|').map((c) => c.trim());
-    const dansLeDoc = colonnes[2]
+    // la cellule porte le texte, puis <br> et la traduction en italique
+    const [texte, trad] = colonnes[2].split('<br>');
+    const dansLeDoc = texte
       .replace(/\*([^*]+)\*/g, '$1')         // les italiques du markdown
       .replace(/^Sayyid al-istighfâr — /, '');
     assert.equal(dansLeDoc, ADHKAR[i].texte,
       `le dhikr n° ${i + 1} n'est pas le même dans RAPPELS.md et dans l'app`);
+    assert.ok(trad, `le dhikr n° ${i + 1} n'a pas de traduction dans RAPPELS.md`);
+    assert.equal(trad.replace(/^\*|\*$/g, ''), ADHKAR[i].traduction,
+      `la traduction n° ${i + 1} diffère entre RAPPELS.md et l'app`);
   });
 });
 
@@ -758,26 +763,30 @@ test('le dhikr de l’heure ne dépend QUE de l’heure', async () => {
 // même dhikr »), et il n'y a plus de débit à limiter puisqu'il n'y a plus de
 // notification à envoyer.
 
-test('l’app n’envoie AUCUNE notification, et c’est voulu', async () => {
-  // Elle en envoyait une à chaque ouverture : deux bannières coup sur coup au
-  // moment du rappel d'eau, et une bannière affichée pendant qu'on regarde
-  // l'app — qui montre déjà le dhikr en entier. C'est le raccourci qui notifie.
-  const { readFile } = await import('node:fs/promises');
-  const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
-  assert.doesNotMatch(app, /showNotification/, 'l’app ne doit plus afficher de notification');
-  assert.doesNotMatch(app, /new Notification\(/, 'ni par la voie directe');
-  assert.doesNotMatch(app, /requestPermission/, 'ni demander la permission : elle n’en a plus besoin');
-});
+// LA RÈGLE A CHANGÉ DEUX FOIS DANS LA MÊME JOURNÉE, et les deux tests qui
+// étaient ici le disaient : « l'app n'envoie AUCUNE notification » et « le
+// crochet du service ouvrier est gardé exprès ».
+//
+// Le 19/09/2026 à 12 h 59, l'app avait cessé de notifier pour supprimer une
+// double bannière. Samer a tranché autrement en fin de journée : « je préfère
+// quand c'était l'app qui me disait verre d'eau ou dhikr avec le dhikr écrit
+// directement dans le centre de notification ». C'est lui qui s'en sert.
+//
+// Ce qui reste de ces deux tests est plus bas, sous une autre forme : le débit
+// limité, et le fait que le contenu vienne de `dhikrDeLHeure` — donc que l'app
+// et le raccourci ne PUISSENT pas se contredire.
 
-test('le crochet du service ouvrier est GARDÉ exprès', async () => {
-  // Il ne sert à rien aujourd'hui. Il reste parce que la décision sur une vraie
-  // notification poussée est encore ouverte (A-FAIRE.md), et qu'il servira tel
-  // quel ce jour-là. « Ce qui se garde exprès se dit exprès. »
+test('c’est l’app qui notifie, et son contenu vient de l’HEURE', async () => {
+  // Si le contenu venait d'ailleurs, l'app et le raccourci — qui ne se parlent
+  // pas — finiraient par dire deux choses différentes.
   const { readFile } = await import('node:fs/promises');
-  const sw = await readFile(new URL('./docs/service-ouvrier.js', import.meta.url), 'utf8');
-  assert.match(sw, /notificationclick/);
   const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
-  assert.match(app, /GARDÉ exprès/, 'la raison de le garder doit être écrite');
+  const fn = app.match(/async function rappelDuMoment\(\)[\s\S]*?\n\}/)?.[0];
+  assert.ok(fn, 'rappelDuMoment introuvable');
+  assert.match(fn, /dhikrDeLHeure\(\)/, 'le contenu doit venir de l’heure');
+  assert.match(fn, /peutNotifier\(classeur\.derniereNotification\)/, 'le débit n’est pas limité');
+  assert.match(fn, /Promise\.race/, 'serviceWorker.ready peut ne jamais se résoudre');
+  assert.match(fn, /estUnMomentDEau/, 'le titre doit distinguer l’eau du dhikr');
 });
 
 test('la carte du dhikr lit l’HEURE, pas un compteur enregistré', async () => {
@@ -846,4 +855,80 @@ test('le classeur ne garde plus de tour ni de date de notification', async () =>
   const repris = completer({ jours: {}, dhikrIndex: 7, derniereNotification: '2026-09-19T10:00:00Z' });
   assert.deepEqual(Object.keys(repris.jours), []);
   assert.ok(repris.reglages.habitudes.length > 0);
+});
+
+test('le rappel dit « un verre d’eau » aux heures d’eau, « Dhikr » sinon', async () => {
+  const { ADHKAR, rappel, estUnMomentDEau } = await import('./1-SOURCE/adhkar.js');
+  const { REGLAGES_DEPART } = await import('./1-SOURCE/depart.js');
+  const h = REGLAGES_DEPART.heuresEau;
+
+  assert.equal(rappel(ADHKAR[0], true).titre, "Un verre d'eau");
+  assert.equal(rappel(ADHKAR[0], false).titre, 'Dhikr');
+
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 10, 30), h), true);
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 14, 0), h), false);
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 6, 0), h), true, 'le Fajr est une heure d’eau');
+});
+
+test('la marge d’eau absorbe le retard d’une automatisation', async () => {
+  // Une automatisation iOS ne part pas à la seconde : elle peut avoir plusieurs
+  // minutes de retard. Sans marge, le rappel de 10 h 30 arriverait sous le
+  // mauvais titre — et l'app dirait « Dhikr » au moment de boire.
+  const { estUnMomentDEau, MARGE_EAU_MINUTES } = await import('./1-SOURCE/adhkar.js');
+  const h = ['10:30'];
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 10, 40), h), true, '10 min de retard : encore l’eau');
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 10, 50), h), false, '20 min : c’est autre chose');
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 10, 20), h), true, 'un peu en avance aussi');
+  assert.ok(MARGE_EAU_MINUTES > 0 && MARGE_EAU_MINUTES < 30, 'une marge trop large avalerait le créneau suivant');
+  // une heure mal écrite ne doit pas faire planter le rappel
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 10, 30), ['n’importe quoi']), false);
+  assert.equal(estUnMomentDEau(new Date(2026, 8, 19, 10, 30), []), false);
+});
+
+test('le corps du rappel porte le texte PUIS la traduction', async () => {
+  // La traduction va en dessous. Dans une notification iOS on ne peut pas lui
+  // donner une taille plus petite — c'est dans l'app qu'elle l'est.
+  const { ADHKAR, rappel } = await import('./1-SOURCE/adhkar.js');
+  const d = ADHKAR[3];
+  assert.equal(rappel(d, false).corps, `${d.texte}\n${d.traduction}`);
+  // un dhikr sans traduction ne doit pas produire une ligne vide
+  assert.equal(rappel({ texte: 'X' }, false).corps, 'X');
+});
+
+test('les quatorze portent une traduction, et aucune n’est vide', async () => {
+  const { ADHKAR } = await import('./1-SOURCE/adhkar.js');
+  for (const d of ADHKAR) {
+    assert.ok(d.traduction && d.traduction.trim().length > 10, `pas de traduction : ${d.texte.slice(0, 30)}`);
+    assert.doesNotMatch(d.traduction, /[؀-ۿ]/, 'la traduction doit être en français');
+  }
+});
+
+test('la carte montre la traduction sous le texte', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
+  const fn = app.match(/function carteDhikr\([\s\S]*?\n\}/)?.[0];
+  assert.ok(fn, 'carteDhikr introuvable');
+  assert.ok(fn.indexOf('dhikr-texte') < fn.indexOf('dhikr-traduction'), 'la traduction vient APRÈS le texte');
+  const css = await readFile(new URL('./1-SOURCE/style.css', import.meta.url), 'utf8');
+  const regle = css.match(/\.dhikr-traduction \{[^}]*\}/)?.[0];
+  assert.ok(regle, 'aucun style pour la traduction');
+  const taille = Number(regle.match(/font-size:\s*(\d+)px/)?.[1]);
+  const tailleTexte = Number(css.match(/\.dhikr-texte \{[\s\S]*?font-size:\s*(\d+)px/)?.[1]);
+  assert.ok(taille < tailleTexte, `la traduction (${taille}px) doit être plus petite que le texte (${tailleTexte}px)`);
+});
+
+test('les heures d’eau sont les mêmes dans l’app et dans RAPPELS.md', async () => {
+  // L'app en a besoin pour choisir le titre de la notification, le document
+  // pour que Samer crée les bonnes automatisations. Si les deux divergent, il
+  // recevra « Dhikr » au moment de boire, sans qu'aucune erreur n'apparaisse.
+  const { readFile } = await import('node:fs/promises');
+  const { REGLAGES_DEPART } = await import('./1-SOURCE/depart.js');
+  const md = await readFile(new URL('./RAPPELS.md', import.meta.url), 'utf8');
+
+  const bloc = md.split("### L'eau")[1];
+  assert.ok(bloc, 'la section de l’eau est introuvable dans RAPPELS.md');
+  const heures = (bloc.match(/```\n([\s\S]*?)```/)?.[1] || '').match(/\d{2}:\d{2}/g) || [];
+  assert.deepEqual(heures.sort(), [...REGLAGES_DEPART.heuresEau].sort(),
+    'les heures d’eau du document et celles de l’app ne concordent pas');
+  assert.equal(heures.length, 8, 'huit verres, huit rappels');
 });

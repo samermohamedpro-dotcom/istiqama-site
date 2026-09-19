@@ -352,3 +352,9 @@ label.champ > span { display: block; font-size: 13px; color: var(--texte-doux); 
 .dhikr-source { font-size: 13px; color: var(--texte-faible); }
 .dhikr-compte { font-size: 17px; color: var(--or); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dhikr-jour { font-size: 13px; color: var(--texte-faible); align-self: center; }
+/* La traduction : plus petite, plus douce, sous le texte. C'est le sens, pas
+   la parole — elle ne doit pas prendre le pas sur ce qu'on récite. */
+.dhikr-traduction {
+  font-size: 14px; line-height: 1.5; color: var(--texte-doux);
+  margin-top: 8px; font-style: italic;
+}

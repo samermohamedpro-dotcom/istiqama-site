@@ -25,22 +25,22 @@ un par un. **Le n° 13 a une authenticité discutée** — Samer a choisi de le
 garder. Je ne suis pas savant : cette liste se contrôle avec une vraie
 référence.
 
-| # | À dire | Source | Long ? |
+| # | À dire, et ce que ça dit | Source | Long ? |
 |---|---|---|---|
-| 1 | Subhâna-Llâhi wa bi-hamdih, subhâna-Llâhi-l-'Azîm | Bukhârî 6406 · Muslim 2694 — **vérifié** | court |
-| 2 | Lâ ilâha illa-Llâhu wahdahu lâ charîka lah, lahu-l-mulku wa lahu-l-hamd, wa huwa 'alâ kulli chay'in qadîr | Bukhârî 3293 · Muslim 2691 — **vérifié** | moyen |
-| 3 | Subhâna-Llâhi wa bi-hamdih | Bukhârî 6405 | court |
-| 4 | Astaghfiru-Llâha wa atûbu ilayh | Bukhârî 6307 | court |
-| 5 | Lâ hawla wa lâ quwwata illâ bi-Llâh | Bukhârî 6384 | court |
-| 6 | Allâhumma salli 'alâ Muhammad wa 'alâ âli Muhammad | Muslim 408 | court |
-| 7 | Subhâna-Llâh · Al-hamdu li-Llâh · Lâ ilâha illa-Llâh · Allâhu akbar | Muslim 2137 | court |
-| 8 | Subhâna-Llâhi wa bi-hamdihi 'adada khalqih, wa ridâ nafsih, wa zinata 'archih, wa midâda kalimâtih | Muslim 2726 | moyen |
-| 9 | *Sayyid al-istighfâr* — Allâhumma anta Rabbî, lâ ilâha illâ anta, khalaqtanî wa anâ 'abduk, wa anâ 'alâ 'ahdika wa wa'dika mâ-stata't. A'ûdhu bika min charri mâ sana't. Abû'u laka bi-ni'matika 'alayya, wa abû'u bi-dhanbî fa-ghfir lî, fa-innahu lâ yaghfiru-dh-dhunûba illâ anta | Bukhârî 6306 | **long** |
-| 10 | Bismi-Llâhi-lladhî lâ yadurru ma'a ismihi chay'un fi-l-ardi wa lâ fi-s-samâ', wa huwa-s-Samî'u-l-'Alîm | Abû Dâwûd 5088 · Tirmidhî 3388 | moyen |
-| 11 | Radîtu bi-Llâhi Rabban, wa bi-l-islâmi dînan, wa bi-Muhammadin nabiyyan | Abû Dâwûd 5072 | court |
-| 12 | Yâ Hayyu yâ Qayyûm, bi-rahmatika astaghîth, aslih lî cha'nî kullah, wa lâ takilnî ilâ nafsî tarfata 'ayn | Nasâ'î — *hasan* | moyen |
-| 13 | Hasbiya-Llâhu lâ ilâha illâ huwa, 'alayhi tawakkaltu wa huwa Rabbu-l-'archi-l-'azîm | Abû Dâwûd 5081 — **authenticité discutée** | moyen |
-| 14 | Allâhumma a'innî 'alâ dhikrika wa chukrika wa husni 'ibâdatik | Abû Dâwûd 1522 — *sahîh* | court |
+| 1 | Subhâna-Llâhi wa bi-hamdih, subhâna-Llâhi-l-'Azîm<br>*Gloire et louange à Allah, gloire à Allah l'Immense.* | Bukhârî 6406 · Muslim 2694 — **vérifié** | court |
+| 2 | Lâ ilâha illa-Llâhu wahdahu lâ charîka lah, lahu-l-mulku wa lahu-l-hamd, wa huwa 'alâ kulli chay'in qadîr<br>*Il n'est de divinité qu'Allah, Seul, sans associé. À Lui la royauté, à Lui la louange, et Il est capable de toute chose.* | Bukhârî 3293 · Muslim 2691 — **vérifié** | moyen |
+| 3 | Subhâna-Llâhi wa bi-hamdih<br>*Gloire et louange à Allah.* | Bukhârî 6405 | court |
+| 4 | Astaghfiru-Llâha wa atûbu ilayh<br>*Je demande pardon à Allah et je reviens à Lui.* | Bukhârî 6307 | court |
+| 5 | Lâ hawla wa lâ quwwata illâ bi-Llâh<br>*Il n'y a de force ni de puissance qu'en Allah.* | Bukhârî 6384 | court |
+| 6 | Allâhumma salli 'alâ Muhammad wa 'alâ âli Muhammad<br>*Ô Allah, prie sur Muhammad et sur la famille de Muhammad.* | Muslim 408 | court |
+| 7 | Subhâna-Llâh · Al-hamdu li-Llâh · Lâ ilâha illa-Llâh · Allâhu akbar<br>*Gloire à Allah · Louange à Allah · Il n'est de divinité qu'Allah · Allah est le plus grand.* | Muslim 2137 | court |
+| 8 | Subhâna-Llâhi wa bi-hamdihi 'adada khalqih, wa ridâ nafsih, wa zinata 'archih, wa midâda kalimâtih<br>*Gloire et louange à Allah, autant que le nombre de Ses créatures, autant que Sa satisfaction, autant que le poids de Son Trône et l'encre de Ses paroles.* | Muslim 2726 | moyen |
+| 9 | *Sayyid al-istighfâr* — Allâhumma anta Rabbî, lâ ilâha illâ anta, khalaqtanî wa anâ 'abduk, wa anâ 'alâ 'ahdika wa wa'dika mâ-stata't. A'ûdhu bika min charri mâ sana't. Abû'u laka bi-ni'matika 'alayya, wa abû'u bi-dhanbî fa-ghfir lî, fa-innahu lâ yaghfiru-dh-dhunûba illâ anta<br>*Ô Allah, Tu es mon Seigneur, il n'est de divinité que Toi. Tu m'as créé et je suis Ton serviteur. Je reste fidèle à Ton pacte et à Ta promesse autant que je le peux. Je cherche refuge auprès de Toi contre le mal de ce que j'ai fait. Je reconnais Ton bienfait envers moi et je reconnais mon péché : pardonne-moi, car nul ne pardonne les péchés hormis Toi.* | Bukhârî 6306 | **long** |
+| 10 | Bismi-Llâhi-lladhî lâ yadurru ma'a ismihi chay'un fi-l-ardi wa lâ fi-s-samâ', wa huwa-s-Samî'u-l-'Alîm<br>*Au nom d'Allah, avec le nom de Qui rien ne peut nuire, ni sur terre ni dans le ciel. Il est Celui qui entend tout, qui sait tout.* | Abû Dâwûd 5088 · Tirmidhî 3388 | moyen |
+| 11 | Radîtu bi-Llâhi Rabban, wa bi-l-islâmi dînan, wa bi-Muhammadin nabiyyan<br>*Je suis satisfait d'Allah comme Seigneur, de l'islam comme religion, et de Muhammad comme prophète.* | Abû Dâwûd 5072 | court |
+| 12 | Yâ Hayyu yâ Qayyûm, bi-rahmatika astaghîth, aslih lî cha'nî kullah, wa lâ takilnî ilâ nafsî tarfata 'ayn<br>*Ô Vivant, ô Subsistant par Soi, j'implore Ton secours par Ta miséricorde. Améliore toute ma condition et ne me confie pas à moi-même le temps d'un clin d'œil.* | Nasâ'î — *hasan* | moyen |
+| 13 | Hasbiya-Llâhu lâ ilâha illâ huwa, 'alayhi tawakkaltu wa huwa Rabbu-l-'archi-l-'azîm<br>*Allah me suffit, il n'est de divinité que Lui. C'est en Lui que je place ma confiance, et Il est le Seigneur du Trône immense.* | Abû Dâwûd 5081 — **authenticité discutée** | moyen |
+| 14 | Allâhumma a'innî 'alâ dhikrika wa chukrika wa husni 'ibâdatik<br>*Ô Allah, aide-moi à T'évoquer, à Te remercier et à T'adorer de la meilleure façon.* | Abû Dâwûd 1522 — *sahîh* | court |
 
 **Chaque dhikr a son heure** : le n° N tombe à l'heure N-1, puis douze heures
 plus tard. Sur tes créneaux de 11 h à 23 h, cela donne les n° 12, 13, 14, puis
@@ -53,64 +53,51 @@ ci-dessus, et un test compare les deux — elles ne peuvent pas diverger.
 
 ---
 
-## Le raccourci « Dhikr » — à faire UNE fois
+## Les deux raccourcis — UNE action chacun
 
-**Il ne tire plus au hasard.** Il prend **le dhikr de l'heure qu'il est** — donc
-la notification et l'écran de l'app montrent toujours le même, sans que les deux
-aient besoin de se parler. C'est pour ça que la liste fait **24 lignes** et non
-14 : une par heure de la journée.
+**Réécrit le 19/09/2026**, à la demande de Samer : « je préfère quand c'était
+l'app qui me disait verre d'eau ou dhikr ». **C'est donc l'app qui écrit la
+notification**, et le raccourci ne fait plus que l'ouvrir. Tout ce qui était
+compliqué — la liste des 24 lignes, le format de date, le calcul — **disparaît**.
 
-*Pourquoi 24 : Raccourcis sait lire « l'élément numéro N » d'une liste, mais pas
-calculer un reste de division sans deux actions de plus. En dépliant la liste
-sur les heures, il n'a qu'à prendre l'heure + 1.*
+### Le raccourci « Ouvrir Istiqama »
 
 1. App **Raccourcis** → onglet **Raccourcis** → **+**
-2. **Ajouter une action** → **Texte** → colle les **24 lignes**
-   (Istiqama → *Réglages* → *Le dhikr* → appui long dans la zone → Tout
-   sélectionner → Copier)
-3. **+** → **Diviser le texte** → séparateur : **Nouvelles lignes**
-4. **+** → **Date** (la date du moment)
-5. **+** → **Formater la date** → *Format de date* : **Personnalisé** →
-   format : **`H`** *(H majuscule : l'heure sur 24, sans zéro devant)*
-6. **+** → **Calculer** → la date formatée **+ 1**
-   *(Raccourcis compte les listes à partir de 1, les heures à partir de 0.)*
-7. **+** → **Obtenir l'élément de la liste** → **Élément à l'index** = le
-   résultat du calcul, dans la **liste** de l'étape 3
-8. **+** → **Afficher la notification** → l'élément obtenu
-9. Renomme-le **Dhikr** et enregistre.
+2. **Ajouter une action** → tape `ouvrir les url` → choisis **Ouvrir les URL**
+3. Colle : `https://samermohamedpro-dotcom.github.io/istiqama-site/`
+4. Renomme-le **Istiqama** → **OK**
 
-**Vérifie-le tout de suite** : lance-le à la main, et compare avec ce qu'affiche
-Istiqama sur l'écran du jour. **Les deux doivent dire la même chose.** Sinon,
-c'est l'étape 5 ou 6 qui a un souci.
+**C'est tout. Un seul raccourci, une seule action, pour l'eau comme pour le
+dhikr.** L'app sait l'heure qu'il est : elle dit « Un verre d'eau » aux heures
+d'eau, « Dhikr » le reste du temps, et elle écrit le dhikr de l'heure avec sa
+traduction.
 
-**Sur tes créneaux de 11 h à 23 h, treize adhkâr différents passent chaque
-jour** — jamais deux fois le même dans la journée. Le quatorzième n'apparaît
-qu'à 10 h : c'est le prix de la simplicité du raccourci, et c'est dit plutôt que
-caché.
+**Avant, il faut autoriser les notifications** : Istiqama → *Réglages* →
+*Le rappel du jour* → **Autoriser les notifications**. Sans ça, rien ne
+s'affichera.
 
-**L'app, elle, n'envoie AUCUNE notification** — choix du 19/09/2026. Elle en
-envoyait une à chaque ouverture : cela faisait deux bannières coup sur coup au
-moment du rappel d'eau (qui ouvre l'app), et une bannière affichée pendant qu'on
-regarde l'app ne sert à rien puisque la carte du dhikr y est déjà, en entier.
-**Tant que ce raccourci n'est pas installé, il n'y a donc aucun rappel de
-dhikr.**
+### Ce que la notification contiendra
 
-## Le raccourci « Eau » — à faire UNE fois
+```
+Dhikr
+Astaghfiru-Llâha wa atûbu ilayh
+Je demande pardon à Allah et je reviens à Lui.
+```
 
-1. **+** → **Afficher la notification** → contenu : `Un verre d'eau`
-2. **+** → **Ouvrir l'URL** → `https://samermohamedpro-dotcom.github.io/istiqama-site/`
-3. Renomme-le **Eau** et enregistre.
+**La traduction est sur la ligne du dessous, de la même taille.** Une
+notification iOS n'a qu'une seule fonte pour son corps — on ne peut pas y faire
+du petit texte. **Dans l'app, elle est plus petite et en italique**, sous le
+texte.
 
-L'app s'ouvre sur l'écran du jour, tu appuies sur **+** de *L'eau*, c'est coché.
-
----
+**Et l'app se tait si elle vient de parler il y a moins de 45 minutes**, pour
+qu'ouvrir l'app trois fois de suite ne produise pas trois bannières.
 
 ## Les automatisations
 
 Pour chacune : **Raccourcis** → onglet **Automatisation** → **+** →
 *Créer une automatisation personnelle* → **Heure de la journée** → l'heure →
 répétition **Quotidienne** → *Suivant* → **Exécuter le raccourci** → choisis
-*Dhikr* ou *Eau*.
+**Istiqama**. *Le même pour toutes : c'est l'app qui décide de quoi parler.*
 
 **Et à chaque fois, le réglage qui décide de tout** : mets **Exécuter
 immédiatement** et coupe **Demander avant d'exécuter**. Sans ça il faut
@@ -121,7 +108,7 @@ vers **10 h 30**, coucher **après minuit** (dit par lui le 19/09/2026). Un
 rappel qui part pendant qu'on dort est pire qu'un rappel absent : il apprend à
 ignorer les notifications de l'app.
 
-### Le dhikr — 13 automatisations, toutes sur *Dhikr*
+### Le dhikr — 13 automatisations
 
 ```
 11:00  12:00  13:00  14:00  15:00
@@ -133,7 +120,7 @@ ignorer les notifications de l'app.
 ajouter si ça te va. Treize d'un coup, c'est vingt minutes de tapotage, et rien
 ne dit que tu les voudras toutes.
 
-### L'eau — 8 automatisations, toutes sur *Eau*
+### L'eau — 8 automatisations
 
 ```
 06:00  10:30  12:30  14:30
@@ -161,8 +148,9 @@ automatisation à heure fixe ne la suit pas. Deux façons de vivre avec :
 - **Une automatisation « Heure de la journée » peut ne pas partir** si le
   téléphone n'a pas été touché depuis plusieurs heures. Ce n'est pas un réveil
   de précision.
-- **Le raccourci « Eau » ouvre l'app**, et c'est voulu : tu coches ton verre
-  d'un geste. Il n'y a plus de double bannière, puisque l'app ne notifie plus.
+- **Les heures d'eau sont dans l'app**, pas seulement ici : c'est elle qui
+  choisit le titre de la notification. Elles vivent dans `1-SOURCE/depart.js`
+  (`heuresEau`), et un test compare les deux listes.
 - **Il n'y aura pas de rappel toutes les 20 minutes.** iOS ne sait pas le faire,
   et une app web encore moins. Le seul chemin fiable serait une vraie app
   native, ou un serveur qui pousse — et ce dernier ferait sortir l'adresse de

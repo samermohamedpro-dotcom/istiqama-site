@@ -28,6 +28,13 @@ export const REGLAGES_DEPART = {
     { id: 'lecture', domaine: 'tete', libelle: 'Lire', detail: '10 pages', type: 'oui-non', actif: true },
   ],
   projets: ['Petit Gâteau', 'Merkhet', 'Conduite'],
+
+  // Les heures où le rappel parle d'eau plutôt que de dhikr. Elles sont ici et
+  // pas seulement dans RAPPELS.md parce que l'APP doit les connaître : c'est
+  // elle qui décide du titre de la notification. Un test compare les deux
+  // listes — deux copies d'une même donnée finissent toujours par diverger.
+  // Le 06:00 est le Fajr, et il dérivera avec les saisons (voir RAPPELS.md).
+  heuresEau: ['06:00', '10:30', '12:30', '14:30', '16:30', '18:30', '20:30', '22:30'],
 };
 
 export const DOMAINES = {

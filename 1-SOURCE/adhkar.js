@@ -11,6 +11,10 @@
 // `ch` pour ش, `dh` pour ذ, `kh` pour خ, `â/î/û` pour les voyelles longues,
 // `'` pour ع et ء.
 //
+// LES TRADUCTIONS sont des rendus français courants, posés le 19/09/2026 à la
+// demande de Samer. Une traduction n'est jamais le texte : elle en donne le
+// sens, pas la lettre. Elles se contrôlent comme le reste.
+//
 // CE QUI EST GARANTI ET CE QUI NE L'EST PAS : les n° 1 et 2 ont été vérifiés
 // directement à la source le 18/09/2026. Les autres viennent de recueils très
 // connus (Hisn al-Muslim, Riyâd as-Sâlihîn) sans vérification une par une. Le
@@ -19,46 +23,60 @@
 
 export const ADHKAR = [
   { texte: "Subhâna-Llâhi wa bi-hamdih, subhâna-Llâhi-l-'Azîm",
-    source: 'Bukhârî 6406 · Muslim 2694', verifie: true, taille: 'court' },
+    source: 'Bukhârî 6406 · Muslim 2694', verifie: true, taille: 'court',
+    traduction: "Gloire et louange à Allah, gloire à Allah l'Immense." },
 
   { texte: "Lâ ilâha illa-Llâhu wahdahu lâ charîka lah, lahu-l-mulku wa lahu-l-hamd, wa huwa 'alâ kulli chay'in qadîr",
-    source: 'Bukhârî 3293 · Muslim 2691', verifie: true, taille: 'moyen' },
+    source: 'Bukhârî 3293 · Muslim 2691', verifie: true, taille: 'moyen',
+    traduction: "Il n'est de divinité qu'Allah, Seul, sans associé. À Lui la royauté, à Lui la louange, et Il est capable de toute chose." },
 
   { texte: 'Subhâna-Llâhi wa bi-hamdih',
-    source: 'Bukhârî 6405', taille: 'court' },
+    source: 'Bukhârî 6405', taille: 'court',
+    traduction: "Gloire et louange à Allah." },
 
   { texte: 'Astaghfiru-Llâha wa atûbu ilayh',
-    source: 'Bukhârî 6307', taille: 'court' },
+    source: 'Bukhârî 6307', taille: 'court',
+    traduction: "Je demande pardon à Allah et je reviens à Lui." },
 
   { texte: 'Lâ hawla wa lâ quwwata illâ bi-Llâh',
-    source: 'Bukhârî 6384', taille: 'court' },
+    source: 'Bukhârî 6384', taille: 'court',
+    traduction: "Il n'y a de force ni de puissance qu'en Allah." },
 
   { texte: "Allâhumma salli 'alâ Muhammad wa 'alâ âli Muhammad",
-    source: 'Muslim 408', taille: 'court' },
+    source: 'Muslim 408', taille: 'court',
+    traduction: "Ô Allah, prie sur Muhammad et sur la famille de Muhammad." },
 
   { texte: 'Subhâna-Llâh · Al-hamdu li-Llâh · Lâ ilâha illa-Llâh · Allâhu akbar',
-    source: 'Muslim 2137', taille: 'court' },
+    source: 'Muslim 2137', taille: 'court',
+    traduction: "Gloire à Allah · Louange à Allah · Il n'est de divinité qu'Allah · Allah est le plus grand." },
 
   { texte: "Subhâna-Llâhi wa bi-hamdihi 'adada khalqih, wa ridâ nafsih, wa zinata 'archih, wa midâda kalimâtih",
-    source: 'Muslim 2726', taille: 'moyen' },
+    source: 'Muslim 2726', taille: 'moyen',
+    traduction: "Gloire et louange à Allah, autant que le nombre de Ses créatures, autant que Sa satisfaction, autant que le poids de Son Trône et l'encre de Ses paroles." },
 
   { texte: "Allâhumma anta Rabbî, lâ ilâha illâ anta, khalaqtanî wa anâ 'abduk, wa anâ 'alâ 'ahdika wa wa'dika mâ-stata't. A'ûdhu bika min charri mâ sana't. Abû'u laka bi-ni'matika 'alayya, wa abû'u bi-dhanbî fa-ghfir lî, fa-innahu lâ yaghfiru-dh-dhunûba illâ anta",
-    source: 'Bukhârî 6306', taille: 'long', nom: "Sayyid al-istighfâr" },
+    source: 'Bukhârî 6306', taille: 'long', nom: "Sayyid al-istighfâr",
+    traduction: "Ô Allah, Tu es mon Seigneur, il n'est de divinité que Toi. Tu m'as créé et je suis Ton serviteur. Je reste fidèle à Ton pacte et à Ta promesse autant que je le peux. Je cherche refuge auprès de Toi contre le mal de ce que j'ai fait. Je reconnais Ton bienfait envers moi et je reconnais mon péché : pardonne-moi, car nul ne pardonne les péchés hormis Toi." },
 
   { texte: "Bismi-Llâhi-lladhî lâ yadurru ma'a ismihi chay'un fi-l-ardi wa lâ fi-s-samâ', wa huwa-s-Samî'u-l-'Alîm",
-    source: 'Abû Dâwûd 5088 · Tirmidhî 3388', taille: 'moyen' },
+    source: 'Abû Dâwûd 5088 · Tirmidhî 3388', taille: 'moyen',
+    traduction: "Au nom d'Allah, avec le nom de Qui rien ne peut nuire, ni sur terre ni dans le ciel. Il est Celui qui entend tout, qui sait tout." },
 
   { texte: 'Radîtu bi-Llâhi Rabban, wa bi-l-islâmi dînan, wa bi-Muhammadin nabiyyan',
-    source: 'Abû Dâwûd 5072', taille: 'court' },
+    source: 'Abû Dâwûd 5072', taille: 'court',
+    traduction: "Je suis satisfait d'Allah comme Seigneur, de l'islam comme religion, et de Muhammad comme prophète." },
 
   { texte: "Yâ Hayyu yâ Qayyûm, bi-rahmatika astaghîth, aslih lî cha'nî kullah, wa lâ takilnî ilâ nafsî tarfata 'ayn",
-    source: 'Nasâ’î — hasan', taille: 'moyen' },
+    source: 'Nasâ’î — hasan', taille: 'moyen',
+    traduction: "Ô Vivant, ô Subsistant par Soi, j'implore Ton secours par Ta miséricorde. Améliore toute ma condition et ne me confie pas à moi-même le temps d'un clin d'œil." },
 
   { texte: "Hasbiya-Llâhu lâ ilâha illâ huwa, 'alayhi tawakkaltu wa huwa Rabbu-l-'archi-l-'azîm",
-    source: 'Abû Dâwûd 5081', taille: 'moyen', discute: true },
+    source: 'Abû Dâwûd 5081', taille: 'moyen', discute: true,
+    traduction: "Allah me suffit, il n'est de divinité que Lui. C'est en Lui que je place ma confiance, et Il est le Seigneur du Trône immense." },
 
   { texte: "Allâhumma a'innî 'alâ dhikrika wa chukrika wa husni 'ibâdatik",
-    source: 'Abû Dâwûd 1522 — sahîh', taille: 'court' },
+    source: 'Abû Dâwûd 1522 — sahîh', taille: 'court',
+    traduction: "Ô Allah, aide-moi à T'évoquer, à Te remercier et à T'adorer de la meilleure façon." },
 ];
 
 
@@ -106,4 +124,48 @@ export function dhikrDeLHeure(maintenant = new Date(), liste = ADHKAR) {
 // de 1 et les heures à partir de 0.
 export function listePourRaccourci(liste = ADHKAR) {
   return Array.from({ length: 24 }, (_, h) => liste[h % liste.length].texte).join('\n');
+}
+
+// --- Le rappel : de quoi parle-t-il, et à quel rythme ----------------------
+
+// Le rappel dit « un verre d'eau » aux heures d'eau, « dhikr » le reste du
+// temps. La marge existe parce qu'une automatisation iOS ne part pas à la
+// seconde : elle peut avoir plusieurs minutes de retard, et le rappel de 10 h 30
+// arriverait alors sous le mauvais titre.
+export const MARGE_EAU_MINUTES = 12;
+
+export function estUnMomentDEau(maintenant = new Date(), heures = [], marge = MARGE_EAU_MINUTES) {
+  const minutes = maintenant.getHours() * 60 + maintenant.getMinutes();
+  return heures.some((h) => {
+    const [hh, mm] = String(h).split(':').map(Number);
+    if (!Number.isFinite(hh) || !Number.isFinite(mm)) return false;
+    return Math.abs(minutes - (hh * 60 + mm)) <= marge;
+  });
+}
+
+// Le débit. L'app envoyait une notification à CHAQUE retour au premier plan :
+// trois en une heure sur la capture de Samer du 19/09/2026. Une notification
+// qu'on voit trop devient un décor, puis on coupe les notifications de l'app —
+// et on perd tout. Le seuil reste sous l'heure, parce que le rythme visé est
+// horaire : un rappel qui arrive 58 minutes après le précédent doit passer.
+export const MINUTES_ENTRE_NOTIFICATIONS = 45;
+
+export function peutNotifier(derniereISO, maintenant = new Date(), minutes = MINUTES_ENTRE_NOTIFICATIONS) {
+  if (!derniereISO) return true;
+  const derniere = new Date(derniereISO).getTime();
+  if (Number.isNaN(derniere)) return true;   // une date illisible ne bloque pas pour toujours
+  return (maintenant.getTime() - derniere) >= minutes * 60000;
+}
+
+// Le titre et le corps, séparés de l'écran pour être éprouvables : un corps mal
+// formé ne se voit que sur le téléphone, une fois qu'il est trop tard.
+//
+// La traduction va sur la ligne du dessous. Dans une notification iOS on ne
+// peut PAS lui donner une taille plus petite — le corps a une seule fonte.
+// C'est dans l'app qu'elle est plus petite.
+export function rappel(dhikr, momentDEau) {
+  return {
+    titre: momentDEau ? "Un verre d'eau" : 'Dhikr',
+    corps: dhikr.traduction ? `${dhikr.texte}\n${dhikr.traduction}` : dhikr.texte,
+  };
 }

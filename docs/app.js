@@ -5,7 +5,7 @@
 import * as L from './logique.js';
 import * as D from './donnees.js';
 import { DOMAINES } from './depart.js';
-import { ADHKAR, dhikrDeLHeure, dhikrCourant, listePourRaccourci } from './adhkar.js';
+import { ADHKAR, dhikrDeLHeure, dhikrCourant, listePourRaccourci, estUnMomentDEau, peutNotifier, rappel } from './adhkar.js';
 
 let classeur = D.lire();
 let onglet = 'aujourdhui';
@@ -271,6 +271,7 @@ function carteDhikr(jour) {
     <div class="carte dhikr-carte">
       <h2>Le dhikr — ${courant.index + 1} sur ${ADHKAR.length}${decalageDhikr !== 0 ? ' · feuilleté' : ' · celui de cette heure'}</h2>
       <button class="dhikr-texte" data-action="compter-dhikr">${txt(dhikr.texte)}</button>
+      ${dhikr.traduction ? `<div class="dhikr-traduction">${txt(dhikr.traduction)}</div>` : ''}
       <div class="dhikr-bas">
         <span class="dhikr-source">${txt(dhikr.source)}${
   dhikr.discute ? ' · <b style="color:var(--danger)">authenticité discutée</b>' : ''}</span>
@@ -674,15 +675,19 @@ function vueReglages() {
 
     <div class="carte">
       <h2>Le rappel du jour</h2>
-      <div class="note-bas" style="margin:0">
-        <b>L'app n'envoie plus de notification elle-même</b>, et c'est voulu : elle en envoyait une
-        à chaque ouverture, ce qui faisait deux bannières coup sur coup au moment du rappel d'eau —
-        et une bannière affichée pendant qu'on regarde l'app ne sert à rien, la carte du dhikr étant
-        juste là, en entier.
+      <div class="rappel-etat ${permission === 'granted' ? 'ok' : ''}">${etatRappel(permission)}</div>
+      ${permission === 'granted' ? '' : `
+        <div class="boutons" style="margin-top:11px">
+          <button class="bouton or" data-action="autoriser-rappels">Autoriser les notifications</button>
+        </div>`}
+      <div class="note-bas" style="margin-top:12px">
+        <b>C'est l'app qui écrit la notification</b> — le dhikr de l'heure, sa traduction, et
+        « un verre d'eau » aux heures d'eau. Tes raccourcis n'ont donc qu'<b>une seule action</b> :
+        <i>Ouvrir les URL</i>.
         <br><br>
-        <b>Les rappels viennent de l'app <i>Raccourcis</i></b>, une automatisation par heure.
-        <b>Tant qu'elles ne sont pas installées, tu n'as aucun rappel.</b>
-        Le mode d'emploi est dans <i>RAPPELS.md</i> — deux raccourcis à créer, puis les heures.
+        <b>Ce qu'elle ne peut pas faire</b> : se réveiller toute seule. C'est l'automatisation
+        Raccourcis qui l'ouvre à l'heure dite, et l'app parle à ce moment-là. Elle se tait si elle
+        vient de parler il y a moins de 45 minutes. Mode d'emploi complet : <i>RAPPELS.md</i>.
       </div>
     </div>
 
@@ -819,6 +824,13 @@ function formulaireHabitude() {
         <button class="bouton" data-action="annuler-habitude">Annuler</button>
       </div>
     </div>`;
+}
+
+function etatRappel(permission) {
+  if (permission === 'absente') return "Ce navigateur ne connaît pas les notifications. Rien à activer.";
+  if (permission === 'granted') return "✓ Autorisées. L'app peut t'écrire le dhikr et les rappels d'eau.";
+  if (permission === 'denied') return "Refusées. Ça se change dans Réglages › Istiqama › Notifications, sur le téléphone.";
+  return "Pas encore autorisées — sans ça, aucun rappel ne s'affichera.";
 }
 
 function listeAdhkar() {
@@ -984,6 +996,9 @@ function agir(action, bouton) {
       heureDuDecalage = new Date().getHours();
       compteSeance = 0;
       return true;
+    case 'autoriser-rappels':
+      demanderRappels();
+      return false;
     case 'voir-adhkar':
       voirAdhkar = !voirAdhkar;
       return true;
@@ -1043,24 +1058,57 @@ function agir(action, bouton) {
 }
 
 
-// POURQUOI L'APP N'ENVOIE PLUS DE NOTIFICATION — 19/09/2026
+// LE RAPPEL — c'est l'app qui parle, le raccourci ne fait que l'ouvrir.
 //
-// Elle en envoyait une à chaque ouverture. Deux défauts qui n'en faisaient
-// qu'un : le raccourci « Eau » ouvre l'app, donc on recevait DEUX bannières
-// coup sur coup à chaque rappel d'eau ; et une notification qui s'affiche
-// pendant qu'on regarde l'app ne sert à rien — la carte du dhikr est juste là,
-// en entier, et la bannière la donne coupée.
+// Remis le 19/09/2026 à la demande de Samer : « je préfère quand c'était l'app
+// qui me disait verre d'eau ou dhikr avec le dhikr écrit directement dans le
+// centre de notification ».
 //
-// C'est donc le raccourci Raccourcis qui notifie, et lui seul. Les deux
-// montrent le même dhikr parce qu'ils le calculent tous les deux depuis
-// l'heure (`dhikrDeLHeure`), sans rien se partager.
+// Ce que ça simplifie chez lui : ses raccourcis n'ont plus qu'UNE action —
+// « Ouvrir les URL ». C'est l'app qui décide de quoi parler, selon l'heure, et
+// qui écrit le texte. Plus rien à tenir en double dans Raccourcis.
 //
-// Ce que ça coûte, et il faut le savoir : tant que le raccourci n'est pas
-// installé, il n'y a plus aucun rappel. Le mode d'emploi est dans RAPPELS.md.
-//
-// Le crochet `notificationclick` du service ouvrier est GARDÉ exprès : la
-// décision sur une vraie notification poussée est encore ouverte (A-FAIRE.md),
-// et il servira tel quel ce jour-là.
+// Les deux garde-fous qui restent indispensables :
+//   · le DÉBIT — elle envoyait une notification à chaque retour au premier
+//     plan, trois en une heure sur sa capture du 19/09 ;
+//   · et le fait que le contenu vienne de `dhikrDeLHeure`, donc que l'app et
+//     le raccourci ne PUISSENT pas se contredire.
+async function rappelDuMoment() {
+  try {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    if (!peutNotifier(classeur.derniereNotification)) return;
+
+    const courant = dhikrDeLHeure();
+    if (!courant) return;
+    const { titre, corps } = rappel(courant.dhikr,
+      estUnMomentDEau(new Date(), classeur.reglages.heuresEau || []));
+
+    classeur.derniereNotification = new Date().toISOString();
+    D.ecrire(classeur);
+
+    // `navigator.serviceWorker.ready` ne se résout JAMAIS quand l'enregistrement
+    // a échoué — il ne rejette pas, il attend. Sans cette course, la fonction
+    // resterait suspendue pour toujours, sans une ligne d'erreur.
+    const inscription = await Promise.race([
+      navigator.serviceWorker?.ready,
+      new Promise((r) => setTimeout(() => r(null), 1500)),
+    ]);
+    const options = { body: corps, tag: `istiqama-${aujourdhui()}`, icon: 'icone-180.png' };
+    if (inscription) await inscription.showNotification(titre, options);
+    else new Notification(titre, options);
+  } catch { /* jamais au prix d'un écran blanc */ }
+}
+
+// Sans permission, aucune notification ne part. On la demande depuis les
+// Réglages, jamais au démarrage : une demande d'autorisation qui surgit avant
+// qu'on ait compris à quoi elle sert se refuse.
+async function demanderRappels() {
+  try {
+    if (typeof Notification === 'undefined') return;
+    await Notification.requestPermission();
+    rendre();
+  } catch { /* un refus n'est pas une panne */ }
+}
 
 // La porte de sortie d'un composant que personne n'a pu vérifier ici : le
 // service ouvrier ne s'enregistre pas dans tous les navigateurs, et un service
@@ -1138,6 +1186,7 @@ setInterval(() => {
 }, 60000);
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) return;
+  rappelDuMoment();
   if (aujourdhui() !== jourAffiche) { jourAffiche = aujourdhui(); bilanOuvert = false; rendre(); }
 });
 
@@ -1148,3 +1197,4 @@ if ('serviceWorker' in navigator) {
 }
 
 rendre();
+rappelDuMoment();
