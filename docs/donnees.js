@@ -23,6 +23,11 @@ export function classeurVide() {
     // rien de plus : ce qui est gelé se lit à l'œil nu dans une sauvegarde.
     gels: { utilises: [] },
     gelRefuse: null,
+    // Où en est le tour des adhkâr, et quand l'app a parlé pour la dernière
+    // fois. Dans le classeur et non en mémoire : le tour doit survivre à la
+    // fermeture de l'app, sinon il repart au premier dhikr à chaque ouverture.
+    dhikrIndex: 0,
+    derniereNotification: null,
     derniereSauvegarde: null,
   };
 }

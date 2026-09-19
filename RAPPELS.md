@@ -66,6 +66,13 @@ Il tire un dhikr au hasard dans la liste et l'affiche. Quatre actions.
 *Les noms d'actions peuvent varier légèrement selon la version d'iOS. Si tu ne
 trouves pas « Diviser le texte », cherche « texte » et regarde la liste.*
 
+**Et l'app en fait autant, de son côté.** Depuis le 19/09/2026, quand Istiqama
+s'ouvre, elle affiche elle-même une notification avec **le dhikr suivant** —
+séquentiel, jamais deux fois le même — et le nombre de choses qui restent. Elle
+se tait si elle vient de parler il y a moins de 45 minutes. Les deux sources ne
+se gênent pas : le raccourci sonne sans ouvrir l'app, l'app parle quand elle
+s'ouvre.
+
 ## Le raccourci « Eau » — à faire UNE fois
 
 1. **+** → **Afficher la notification** → contenu : `Un verre d'eau`
@@ -107,13 +114,23 @@ ne dit que tu les voudras toutes.
 ### L'eau — 8 automatisations, toutes sur *Eau*
 
 ```
-10:30  12:00  14:00  16:00
-18:00  20:00  21:30  23:00
+06:00  10:30  12:30  14:30
+16:30  18:30  20:30  22:30
 ```
 
-**Le premier au réveil**, parce qu'on se lève déshydraté après une nuit. Le
-dernier vers 23 h, soit environ une heure et demie avant de dormir — assez tôt
-pour ne pas te réveiller la nuit.
+**Le premier au Fajr** (choisi par Samer le 19/09/2026) : on se lève déshydraté
+après une nuit, et c'est le moment où il est déjà debout. Puis toutes les deux
+heures à partir du réveil, et le dernier à 22 h 30 — assez tôt avant un coucher
+après minuit pour ne pas le réveiller la nuit.
+
+**Le 06:00 va dériver, et il faut le savoir.** L'heure du Fajr change toute
+l'année : à Paris, autour de 4 h en juin et de 6 h 45 en décembre. Une
+automatisation à heure fixe ne la suit pas. Deux façons de vivre avec :
+
+- **la déplacer trois ou quatre fois dans l'année**, aux changements de saison ;
+- **ou l'oublier** : Samer reçoit déjà l'athan de sa mosquée sur son téléphone.
+  Il boit à ce moment-là et coche dans l'app quand il y passe. Le rappel n'est
+  alors qu'un filet.
 
 ---
 
@@ -126,8 +143,7 @@ pour ne pas te réveiller la nuit.
   et une app web encore moins. Le seul chemin fiable serait une vraie app
   native, ou un serveur qui pousse — et ce dernier ferait sortir l'adresse de
   notification du téléphone (`A-FAIRE.md`).
-- **Le Fajr n'a pas de rappel d'eau.** Si tu te lèves pour la prière puis te
-  rendors, dis-le : on ajoute une automatisation, et on en retire une le soir
-  pour rester à huit verres.
-- **Le vendredi n'est pas traité à part.** Si tu veux que les rappels se taisent
-  ce jour-là, dis-le : ça se fait dans le raccourci, pas dans l'app.
+- **Le vendredi reste un jour comme les autres pour les rappels.** Tranché par
+  Samer le 19/09/2026 : « le vendredi non tu garde ». C'est une exception
+  assumée à sa règle de méthode « vendredi est jour de repos » — cette règle-là
+  vaut pour le travail, pas pour l'eau ni pour le dhikr.

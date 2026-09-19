@@ -68,3 +68,47 @@ export const ADHKAR = [
 export function texteACollerDansRaccourcis(liste = ADHKAR) {
   return liste.map((d) => d.texte).join('\n');
 }
+
+// --- La rotation -----------------------------------------------------------
+//
+// Samer, le 19/09/2026 : « je veux que la notification affiche le dhikr au lieu
+// de me mettre tout le temps la même chose ».
+//
+// La rotation est SÉQUENTIELLE, pas au hasard. Le hasard répète : sur 14
+// éléments, il retombe sur le même deux fois de suite une fois sur quatorze, et
+// laisse des adhkâr jamais vus pendant des jours. Un tour complet garantit ce
+// qu'il a demandé — toujours différent — et fait passer les quatorze.
+export function dhikrSuivant(index = 0, liste = ADHKAR) {
+  if (liste.length === 0) return null;
+  const i = ((Number(index) || 0) % liste.length + liste.length) % liste.length;
+  return { dhikr: liste[i], index: i, suivant: (i + 1) % liste.length };
+}
+
+// --- Le débit de notifications ---------------------------------------------
+//
+// L'app envoyait une notification à CHAQUE retour au premier plan : trois en
+// une heure sur la capture de Samer du 19/09/2026, toutes identiques. Une
+// notification qu'on voit trop devient un décor, puis on coupe les
+// notifications de l'app — et on perd tout.
+//
+// Le seuil est en dessous de l'heure, parce que le rythme visé est horaire :
+// un rappel qui arrive 58 minutes après le précédent doit passer.
+export const MINUTES_ENTRE_NOTIFICATIONS = 45;
+
+export function peutNotifier(derniereISO, maintenant = new Date(), minutes = MINUTES_ENTRE_NOTIFICATIONS) {
+  if (!derniereISO) return true;
+  const derniere = new Date(derniereISO).getTime();
+  if (Number.isNaN(derniere)) return true;   // une date illisible ne doit pas bloquer pour toujours
+  return (maintenant.getTime() - derniere) >= minutes * 60000;
+}
+
+// Le texte exact de la notification. Séparé de l'écran pour être éprouvable :
+// un corps de notification mal formé ne se voit que sur le téléphone, une fois
+// qu'il est trop tard.
+//
+// Le dhikr vient EN PREMIER : c'est lui qu'on veut lire, et iOS coupe la suite
+// dans la bannière. Le reste de la journée passe en seconde ligne.
+export function corpsDuRappel(dhikr, reste) {
+  const fin = reste > 0 ? `il te reste ${reste} chose${reste > 1 ? 's' : ''}` : 'journée pleine';
+  return `${dhikr.texte}\n· ${fin}`;
+}

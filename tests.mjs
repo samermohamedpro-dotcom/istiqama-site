@@ -569,8 +569,8 @@ test('la notification ne peut pas rester suspendue pour toujours', async () => {
   // temps, la fonction ne revient plus — et rien ne le signale.
   const { readFile } = await import('node:fs/promises');
   const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
-  const fn = app.match(/async function direCeQuiReste\(\)[\s\S]*?\n\}/)?.[0];
-  assert.ok(fn, 'direCeQuiReste introuvable');
+  const fn = app.match(/async function rappelDuMoment\(\)[\s\S]*?\n\}/)?.[0];
+  assert.ok(fn, 'rappelDuMoment introuvable');
   assert.match(fn, /Promise\.race/, 'aucune limite de temps sur serviceWorker.ready');
   assert.match(fn, /setTimeout/);
 });
@@ -716,4 +716,78 @@ test('la zone « texte à coller » de l’app porte EXACTEMENT ce qui doit êtr
     'la zone doit être remplie depuis texteACollerDansRaccourcis(), pas à la main');
   // et le bouton ne doit pas affirmer un succès qu'il ne peut pas prouver
   assert.doesNotMatch(app, /adhkâr copiés/, 'le bouton ne doit pas affirmer « copiés »');
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  La notification : un dhikr différent, et pas trop souvent
+// ═══════════════════════════════════════════════════════════════════════════
+
+test('la rotation des adhkâr fait le tour complet avant de se répéter', async () => {
+  // Demandé par Samer : « toujours différent ». Le hasard ne le garantit pas —
+  // il retombe sur le même et en laisse d'autres jamais vus.
+  const { ADHKAR, dhikrSuivant } = await import('./1-SOURCE/adhkar.js');
+  const vus = [];
+  let i = 0;
+  for (let n = 0; n < ADHKAR.length; n++) {
+    const r = dhikrSuivant(i);
+    vus.push(r.index);
+    i = r.suivant;
+  }
+  assert.deepEqual(vus, [...ADHKAR.keys()], 'le tour doit passer par les 14, dans l’ordre');
+  assert.equal(new Set(vus).size, ADHKAR.length, 'aucun ne doit sortir deux fois dans un tour');
+  assert.equal(dhikrSuivant(i).index, 0, 'après le dernier, on repart au premier');
+});
+
+test('un index abîmé ne casse pas la rotation', async () => {
+  // Un classeur restauré, un index négatif, un texte : rien ne doit planter au
+  // moment d'afficher une notification.
+  const { ADHKAR, dhikrSuivant } = await import('./1-SOURCE/adhkar.js');
+  assert.equal(dhikrSuivant(-1).index, ADHKAR.length - 1);
+  assert.equal(dhikrSuivant(999).index, 999 % ADHKAR.length);
+  assert.equal(dhikrSuivant('bonjour').index, 0);
+  assert.equal(dhikrSuivant(undefined).index, 0);
+  assert.equal(dhikrSuivant(0, []), null);
+});
+
+test('la notification ne repart pas à chaque retour dans l’app', async () => {
+  // Défaut vu sur la capture de Samer du 19/09/2026 : trois notifications
+  // identiques en une heure, une par ouverture. Une notification qu'on voit
+  // trop devient un décor, puis on coupe les notifications — et on perd tout.
+  const { peutNotifier, MINUTES_ENTRE_NOTIFICATIONS } = await import('./1-SOURCE/adhkar.js');
+  const t = (m) => new Date(2026, 8, 19, 12, m);
+  assert.equal(peutNotifier(null, t(0)), true, 'la toute première doit passer');
+  assert.equal(peutNotifier(t(0).toISOString(), t(5)), false, '5 minutes après : non');
+  assert.equal(peutNotifier(t(0).toISOString(), t(44)), false);
+  assert.equal(peutNotifier(t(0).toISOString(), t(45)), true, 'au seuil : oui');
+  // le rythme visé est horaire : un rappel à 58 minutes doit passer
+  assert.equal(peutNotifier(t(0).toISOString(), t(58)), true);
+  assert.ok(MINUTES_ENTRE_NOTIFICATIONS < 60, 'le seuil doit rester sous l’heure');
+  // une date illisible ne doit pas bloquer pour toujours
+  assert.equal(peutNotifier('n’importe quoi', t(0)), true);
+});
+
+test('le corps de la notification met le DHIKR en premier', async () => {
+  // iOS coupe la bannière après deux lignes : ce qui est en premier est ce
+  // qu'on lit. Le dhikr passe donc avant le compte de la journée.
+  const { ADHKAR, corpsDuRappel } = await import('./1-SOURCE/adhkar.js');
+  const c = corpsDuRappel(ADHKAR[0], 11);
+  assert.ok(c.startsWith(ADHKAR[0].texte), 'le dhikr doit ouvrir la notification');
+  assert.equal(c, `${ADHKAR[0].texte}\n· il te reste 11 choses`);
+  assert.equal(corpsDuRappel(ADHKAR[0], 1), `${ADHKAR[0].texte}\n· il te reste 1 chose`);
+  assert.equal(corpsDuRappel(ADHKAR[0], 0), `${ADHKAR[0].texte}\n· journée pleine`);
+  // et jamais la vieille phrase, qui était la même tous les jours
+  assert.doesNotMatch(c, /^Il te reste/);
+});
+
+test('le tour avance AVANT l’affichage, pas après', async () => {
+  // Si le tour n'avançait qu'après un affichage réussi, un échec le bloquerait
+  // — et on retomberait exactement sur le défaut qu'on corrige : toujours le
+  // même dhikr.
+  const { readFile } = await import('node:fs/promises');
+  const app = await readFile(new URL('./1-SOURCE/app.js', import.meta.url), 'utf8');
+  const fn = app.match(/async function rappelDuMoment\(\)[\s\S]*?\n\}/)?.[0];
+  assert.ok(fn, 'rappelDuMoment introuvable');
+  assert.ok(fn.indexOf('classeur.dhikrIndex = tour.suivant') < fn.indexOf('showNotification'),
+    'le tour doit avancer avant l’affichage');
+  assert.match(fn, /peutNotifier\(classeur\.derniereNotification\)/, 'le débit n’est pas limité');
 });

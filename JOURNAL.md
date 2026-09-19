@@ -7,6 +7,9 @@ elle n'est pas redite ici.
 **Index des corrections.** Une entrée devenue fausse se corrige par une
 **nouvelle** entrée, jamais en modifiant l'ancienne, et se signale ici.
 
+- **19/09/2026, 00 h 10** — l'eau à 10:30 pour premier rappel, et « le Fajr
+  n'a pas de rappel d'eau ». **Corrigé par l'entrée de 12 h 29** : le premier
+  verre passe au Fajr, à la demande de Samer.
 - **19/09/2026, 00 h 07** — les heures des rappels (dhikr 07:00–21:00, eau
   06:30–20:30). **Fausses dès le départ** : elles supposaient une journée
   7 h – 21 h que personne n'avait demandée. Corrigées par l'entrée de 00 h 10.
@@ -20,6 +23,88 @@ elle n'est pas redite ici.
   `istiqama-site` existe, il est public, et l'app est servie par GitHub Pages.
 
 ---
+
+# 19/09/2026, 12 h 29 — La notification affiche un dhikr, et elle se tait quand elle vient de parler
+
+Touche : Istiqama
+
+Statut : **constaté puis demandé par Samer** — capture du centre de
+notifications à l'appui
+
+## Ce qui a été décidé
+
+- **La notification de l'app affiche un dhikr**, pas « Il te reste 11 choses ».
+  Le dhikr passe en premier, le compte de la journée en seconde ligne.
+- **La rotation est séquentielle**, pas au hasard : les quatorze passent avant
+  qu'un seul revienne.
+- **L'app se tait si elle a parlé il y a moins de 45 minutes.**
+- **Un rappel d'eau au Fajr**, et le dernier passe à 22 h 30 — huit verres,
+  toujours.
+- **Le vendredi reste un jour comme les autres** pour les rappels.
+
+## Pourquoi
+
+**Sa capture montrait le défaut en entier** : quatre notifications identiques —
+23:55, 00:06, 00:46, puis 12:24 — toutes « Il te reste 11 choses aujourd'hui ».
+Deux défauts, pas un :
+
+- **le contenu ne changeait jamais**, alors que l'app porte quatorze adhkâr
+  depuis la veille ;
+- **elle partait à chaque retour au premier plan**, donc plusieurs fois par
+  heure. Une notification qu'on voit trop devient un décor, puis on coupe les
+  notifications de l'app — et on perd tout, y compris ce qui était utile.
+
+**Séquentiel et non au hasard.** Samer a demandé « toujours différent ». Le
+hasard ne le donne pas : sur quatorze, il retombe sur le même une fois sur
+quatorze, et laisse des adhkâr jamais vus pendant des jours. Un tour complet
+garantit exactement ce qui a été demandé.
+
+**Le tour avance AVANT l'affichage.** Si l'index n'avançait qu'après un succès,
+un échec d'affichage le bloquerait — et on retomberait sur « toujours le même »,
+c'est-à-dire le défaut qu'on corrige.
+
+**Le seuil est à 45 minutes et pas à une heure** : le rythme visé est horaire, et
+un rappel qui arrive 58 minutes après le précédent doit passer.
+
+**Le Fajr** : Samer se lève pour la prière, donc c'est le moment où il est déjà
+debout, et on se lève déshydraté. Le rappel de 06:00 **dérivera** — l'heure du
+Fajr va de 4 h en juin à 6 h 45 en décembre à Paris — et c'est écrit dans
+`RAPPELS.md` plutôt que caché.
+
+**Le vendredi** : sa règle de méthode dit « vendredi est jour de repos ». Elle
+vaut pour le travail, pas pour l'eau ni pour le dhikr. Il l'a tranché en trois
+mots : « le vendredi non tu garde ».
+
+## Ce que ça change
+
+- **`adhkar.js`** gagne `dhikrSuivant`, `peutNotifier`, `corpsDuRappel` — toutes
+  pures, toutes testées. Le texte de la notification est sorti de l'écran pour
+  pouvoir être éprouvé : un corps mal formé ne se voit que sur le téléphone,
+  quand il est trop tard.
+- **Le classeur** porte `dhikrIndex` et `derniereNotification`. Dans les données
+  et non en mémoire : sinon le tour repartirait au premier dhikr à chaque
+  ouverture.
+- **`direCeQuiReste` s'appelle maintenant `rappelDuMoment`** — le nom disait ce
+  qu'elle ne fait plus.
+
+## Ce qui reste ouvert
+
+- **Samer n'a toujours pas contrôlé les 14 adhkâr** avec sa référence.
+- **Les raccourcis ne sont pas installés** : l'app parle quand elle s'ouvre, ce
+  qui ne remplace pas un rappel qui sonne tout seul.
+
+## Vu passer
+
+- **66 tests, 66 verts** (5 de plus).
+- **Quatre protections cassées et vues rouges** : la rotation remplacée par un
+  tirage au hasard (2 rouges), le seuil de notification mis à zéro, le seuil
+  passé au-dessus d'une heure, et un index négatif plus rattrapé.
+- **La rotation regardée dans le navigateur** : quatre adhkâr différents à la
+  suite, dans l'ordre.
+- **Les notifications sont refusées dans le navigateur d'aperçu** (`permission:
+  denied`), donc l'affichage réel n'a pas pu être vu ici. C'est le téléphone de
+  Samer qui tranchera — et sa capture prouve déjà que le mécanisme fonctionne
+  chez lui.
 
 # 19/09/2026, 00 h 10 — Les rappels suivent SA journée, pas une journée moyenne
 

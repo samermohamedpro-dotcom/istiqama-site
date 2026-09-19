@@ -5,7 +5,7 @@
 import * as L from './logique.js';
 import * as D from './donnees.js';
 import { DOMAINES } from './depart.js';
-import { ADHKAR, texteACollerDansRaccourcis } from './adhkar.js';
+import { ADHKAR, texteACollerDansRaccourcis, dhikrSuivant, peutNotifier, corpsDuRappel } from './adhkar.js';
 
 let classeur = D.lire();
 let onglet = 'aujourdhui';
@@ -1010,30 +1010,48 @@ async function demanderRappels() {
   } catch { /* un refus n'est pas une panne */ }
 }
 
-async function direCeQuiReste() {
+// Le rappel : un dhikr, et il n'est JAMAIS le même deux fois de suite.
+//
+// Demandé par Samer le 19/09/2026 : « je veux que la notification affiche le
+// dhikr au lieu de me mettre tout le temps la même chose ». Sa capture montrait
+// trois notifications identiques en une heure — « Il te reste 11 choses » — une
+// par ouverture de l'app.
+//
+// Deux corrections, et la seconde compte autant que la première : le contenu
+// tourne (séquentiel, pas au hasard : le hasard répète), ET l'app se tait si
+// elle vient de parler. Une notification qu'on voit trop devient un décor, puis
+// on coupe les notifications de l'app — et on perd tout.
+async function rappelDuMoment() {
   try {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    if (!peutNotifier(classeur.derniereNotification)) return;
+
+    const tour = dhikrSuivant(classeur.dhikrIndex);
+    if (!tour) return;
+
     const cle = aujourdhui();
     const { gagnes, possibles } = L.pointsDuJour(classeur.jours[cle], classeur.reglages);
     const reste = Math.max(0, possibles - Math.ceil(gagnes));
-    if (reste === 0) return;
-    const longue = L.plusLongueChaine(classeur.jours, classeur.reglages, cle, gels());
-    const corps = longue.jours > 0
-      ? `Il te reste ${reste} chose${reste > 1 ? 's' : ''}. Chaîne en cours : ${longue.jours} jours.`
-      : `Il te reste ${reste} chose${reste > 1 ? 's' : ''} aujourd'hui.`;
+
+    // On avance le tour AVANT d'afficher : si l'affichage échoue, le dhikr
+    // suivant sortira quand même la fois d'après. Un tour bloqué redonnerait
+    // exactement le défaut qu'on corrige.
+    classeur.dhikrIndex = tour.suivant;
+    classeur.derniereNotification = new Date().toISOString();
+    D.ecrire(classeur);
+
+    const corps = corpsDuRappel(tour.dhikr, reste);
 
     // `navigator.serviceWorker.ready` ne se résout JAMAIS quand l'enregistrement
     // a échoué — il ne rejette pas, il attend. Sans cette course, la fonction
-    // resterait suspendue pour toujours, sans une ligne d'erreur. Vécu le
-    // 18/09/2026 : le service ouvrier ne s'enregistre pas dans certains
-    // navigateurs, et la promesse ne revenait pas.
+    // resterait suspendue pour toujours, sans une ligne d'erreur.
     const inscription = await Promise.race([
       navigator.serviceWorker?.ready,
       new Promise((r) => setTimeout(() => r(null), 1500)),
     ]);
     const options = { body: corps, tag: `istiqama-${cle}`, icon: 'icone-180.png' };
-    if (inscription) await inscription.showNotification('Istiqama', options);
-    else new Notification('Istiqama', options);   // sans service ouvrier, la voie directe
+    if (inscription) await inscription.showNotification('Dhikr', options);
+    else new Notification('Dhikr', options);   // sans service ouvrier, la voie directe
   } catch { /* jamais au prix d'un écran blanc */ }
 }
 
@@ -1114,7 +1132,7 @@ setInterval(() => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) return;
   if (aujourdhui() !== jourAffiche) { jourAffiche = aujourdhui(); bilanOuvert = false; rendre(); }
-  direCeQuiReste();
+  rappelDuMoment();
 });
 
 // Le service ouvrier : il sert l'app hors connexion. Sans lui, un métro sans
@@ -1124,4 +1142,4 @@ if ('serviceWorker' in navigator) {
 }
 
 rendre();
-direCeQuiReste();
+rappelDuMoment();
